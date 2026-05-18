@@ -1,17 +1,15 @@
 <?php
 
-  namespace App\Models;
+namespace App\Models;
 
-  use Illuminate\Database\Eloquent\Factories\HasFactory;
-  use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model;
 
-  class Task extends Model
-  {
-    use HasFactory;
-
-    // 編集可能な属性を指定
-protected $fillable = [
-    'title',
-    'description',
-    'user_id',
-];}
+class Task extends Model
+{
+    protected $fillable = [
+        'title',
+        'description',
+        'completed',
+        'user_id'
+    ];
+}
