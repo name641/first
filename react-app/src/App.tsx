@@ -83,40 +83,41 @@
 
 
 
-import { useEffect, useState } from 'react'
-function App() {
-  const [users, setUsers] = useState([])
-
-  useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/users')
-      .then(res => res.json())
-      .then(data => setUsers(data))
-  }, [])
-
-  return (
-    <div>
-      <h1>Users</h1>
-
-      {users.map(user => (
-        <div key={user.id}>
-          <p>{user.name}</p>
-          <p>{user.email}</p>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-export default App 
-
-
-
-// import Login from "./pages/Login";
-
+// import { useEffect, useState } from 'react'
 // function App() {
+//   const [users, setUsers] = useState([])
+
+//   useEffect(() => {
+//     fetch('http://127.0.0.1:8000/api/users')
+//       .then(res => res.json())
+//       .then(data => setUsers(data))
+//   }, [])
+
 //   return (
-// <Login />
-//   );
+//     <div>
+//       <h1>Users</h1>
+
+//       {users.map(user => (
+//         <div key={user.id}>
+//           <p>{user.name}</p>
+//           <p>{user.email}</p>
+//         </div>
+//       ))}
+//     </div>
+//   )
 // }
 
-// export default App;
+// export default App 
+
+import { Routes, Route } from "react-router-dom";
+import Login from "./pages/Login";
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Login />} />
+    </Routes>
+  );
+}
+
+export default App;

@@ -1,55 +1,75 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import "bootstrap/dist/css/bootstrap.min.css";
 
-function Login() {
+const Login = () => {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const handleLogin = () => {
-    fetch("http://127.0.0.1:8000/api/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      const response = await axios.post("http://localhost:8000/api/login", {
         email,
-        password
-      })
-    })
-      .then(res => res.json())
-      .then(data => {
-        console.log(data);
-
-        if (data.token) {
-          localStorage.setItem("token", data.token);
-          alert("ログイン成功");
-        } else {
-          alert("ログイン失敗");
-        }
+        password,
       });
+
+      if (response.data?.token) {
+        localStorage.setItem("token", response.data.token);
+        navigate("/TaskApp");
+      } else {
+        setError("ログイン失敗");
+      }
+    } catch (err: any) {
+      setError("ユーザーアカウントまたはパスワードが間違っています");
+    }
   };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "300px" }}>
-      <h1>ログイン</h1>
-      <input
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="メールアドレス"
-      />
+    <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
+      <div className="card shadow p-4" style={{ width: "350px" }}>
+        <h3 className="text-center mb-4">ログイン</h3>
 
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="パスワード"
-      />
+        <form onSubmit={handleLogin}>
+          <div className="mb-3">
+            <input
+              type="email"
+              className="form-control"
+              placeholder="メールアドレス"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
 
-      <button onClick={handleLogin}>
-        ログイン
-      </button>
-      
+          <div className="mb-3">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="パスワード"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <button className="btn btn-primary w-100">
+            ログイン
+          </button>
+
+          {error && (
+            <div className="alert alert-danger mt-3">
+              {error}
+            </div>
+          )}
+        </form>
+      </div>
     </div>
   );
-}
+};
 
 export default Login;

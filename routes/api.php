@@ -12,21 +12,22 @@ Route::get('/tasks', function () {
 });
 Route::get('/users', [UserController::class, 'index']);
 
+Route::middleware('auth:sanctum')->group(function () {
 
-Route::post('/tasks', function (Request $request) {
+    Route::post('/tasks', function (Request $request) {
+        return Task::create([
+            'title' => $request->title,
+            'description' => $request->description,
+            'completed' => false,
+            'user_id' => $request->user_id,
+        ]);
+    });
 
-    return Task::create([
-        'title' => $request->title,
-        'description' => $request->description,
-        'completed' => false,
-        'user_id' => $request->user_id,
-    ]);
+    Route::delete('/tasks/{id}', function ($id) {
+        return Task::destroy($id);
+    });
+
 });
-
-Route::delete('/tasks/{id}', function ($id) {
-    return Task::destroy($id);
-});
-
 Route::post('/login', function (Request $request) {
 
     $user = User::where('email', $request->email)->first();
