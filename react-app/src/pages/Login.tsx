@@ -22,7 +22,7 @@ const Login = () => {
 
       if (response.data?.token) {
         localStorage.setItem("token", response.data.token);
-        navigate("/TaskApp");
+        navigate("/FunctionList");
       } else {
         setError("ログイン失敗");
       }

@@ -111,11 +111,15 @@
 
 import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
+import FeatureList from "./pages/FunctionList";
+import Task from "./pages/Tasks";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
+      <Route path="/functionlist" element={<FeatureList />} />
+      <Route path="/tasks" element={<Task />} />
     </Routes>
   );
 }
