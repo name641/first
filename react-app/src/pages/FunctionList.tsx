@@ -12,12 +12,6 @@ type Task = {
 export default function Page() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  
-  const navigate = useNavigate();
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  };
   const [tasks, setTasks] = useState<Task[]>([]);
 
 useEffect(() => {
@@ -51,6 +45,16 @@ useEffect(() => {
     task.title.toLowerCase().includes(search.toLowerCase()) ||
     task.description.toLowerCase().includes(search.toLowerCase())
   );
+  //NewTask
+  const goCreateTask = () => {
+  navigate("/taskscreate");
+  };
+  //logout
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/");
+  };
 
   return (
     <>
@@ -73,7 +77,10 @@ useEffect(() => {
         {/* 右：ボタン */}
         <div className="d-flex gap-2">
 
-          <button className="btn btn-success btn-sm">
+          <button 
+            className="btn btn-success btn-sm"
+            onClick={goCreateTask}
+          >
             + New Task
           </button>
 
