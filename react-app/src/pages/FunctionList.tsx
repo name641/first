@@ -1,4 +1,3 @@
-
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -59,7 +58,12 @@ useEffect(() => {
   return (
     <>
       {/* ================= HEADER ================= */}
-      <header className="navbar navbar-dark bg-dark px-3">
+      <header 
+       className="navbar navbar-dark px-3"
+       style={{
+        backgroundColor: "#1f2937",
+        }}
+      >
 
         {/* 左：ブランド */}
         <a className="navbar-brand fw-bold" href="#">
@@ -153,8 +157,13 @@ useEffect(() => {
       )}
 
       {/* ================= BODY ================= */}
-      <div className="container py-5">
-
+      <div
+        className="container-fluid py-5"
+        style={{
+          backgroundColor: "#f5f7fb",
+          minHeight: "100vh",
+        }}
+      >
         <h4 className="mb-4">📋 Task List</h4>
 
         <div className="row g-4">
@@ -162,7 +171,23 @@ useEffect(() => {
           {filteredTasks.map((task, index) => (
             <div className="col-12 col-md-4" key={task.id}>
 
-              <div className="card h-100 shadow-sm border-0">
+              <div
+                className="card h-100 border-0"
+                style={{
+                  borderRadius: "16px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+                onClick={() =>
+                  navigate(`/taskedit/${task.id}`)
+                }
+              >
 
                 <div className="card-body">
 

@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Api\UserController;
 
-
 Route::post('/users', [UserController::class, 'store']);
 
 Route::post('/login', function (Request $request) {
@@ -14,7 +13,10 @@ Route::post('/login', function (Request $request) {
     $user = User::where('email', $request->email)->first();
 
     if (!$user || !Hash::check($request->password, $user->password)) {
-        return response()->json(['message' => 'Login failed'], 401);
+
+        return response()->json([
+            'message' => 'Login failed'
+        ], 401);
     }
 
     $token = $user->createToken('auth_token')->plainTextToken;
@@ -26,8 +28,14 @@ Route::post('/login', function (Request $request) {
 
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::get('/tasks', function (Request $request) {
-        return Task::where('user_id', $request->user()->id)->get();
+    Route::get('/tasks', fn (Request $request)
+        => Task::where('user_id', $request->user()->id)->get()
+    );
+
+    Route::get('/tasks/{id}', function (Request $request, $id) {
+        return Task::where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->firstOrFail();
     });
 
     Route::post('/tasks', function (Request $request) {
@@ -39,7 +47,22 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
 
+    Route::put('/tasks/{id}', function (Request $request, $id) {
+
+        $task = Task::where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->firstOrFail();
+
+        $task->update([
+            'title' => $request->title,
+            'description' => $request->description,
+        ]);
+
+        return $task;
+    });
+
     Route::delete('/tasks/{id}', function ($id) {
         return Task::destroy($id);
     });
+
 });
