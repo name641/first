@@ -11,7 +11,6 @@ Route::get('/tasks', function () {
     return Task::all();
 });
 Route::get('/users', [UserController::class, 'index']);
-
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/tasks', function (Request $request) {
@@ -28,6 +27,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
 });
+Route::post('/users', [UserController::class, 'store']);
+
 Route::post('/login', function (Request $request) {
 
     $user = User::where('email', $request->email)->first();

@@ -110,6 +110,7 @@
 // export default App 
 
 import { Routes, Route } from "react-router-dom";
+import Ce from "./pages/Create";
 import Login from "./pages/Login";
 import FeatureList from "./pages/FunctionList";
 import Task from "./pages/Tasks";
@@ -120,6 +121,7 @@ function App() {
       <Route path="/" element={<Login />} />
       <Route path="/functionlist" element={<FeatureList />} />
       <Route path="/tasks" element={<Task />} />
+      <Route path="/create" element={<Ce />} />
     </Routes>
   );
 }
