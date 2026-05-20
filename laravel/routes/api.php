@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Api\UserController;
 
 Route::post('/users', [UserController::class, 'store']);
-
 Route::post('/login', function (Request $request) {
 
     $user = User::where('email', $request->email)->first();
@@ -25,6 +24,7 @@ Route::post('/login', function (Request $request) {
         'token' => $token
     ]);
 });
+
 
 Route::middleware('auth:sanctum')->group(function () {
 
