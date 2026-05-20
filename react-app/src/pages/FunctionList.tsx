@@ -1,6 +1,7 @@
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type Task = {
   id: number;
@@ -11,36 +12,39 @@ type Task = {
 export default function Page() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/");
+  };
+  const [tasks, setTasks] = useState<Task[]>([]);
 
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: 1,
-      title: "TEST TASK",
-      description: "debug test",
-    },
-    {
-      id: 2,
-      title: "Login UI作成",
-      description: "Google風UIで作る",
-    },
-    {
-      id: 3,
-      title: "API接続",
-      description: "axiosで接続確認",
-    },
-  ]);
+useEffect(() => {
+  const token = localStorage.getItem("token");
 
-  // DBから取得（例）
-  useEffect(() => {
-    fetch("http://localhost:8000/api/tasks")
-      .then((res) => res.json())
-      .then((data) => {
-        setTasks(data) 
-      })
-      .catch(() => {
-        // 失敗してもダミー継続
-      });
-  }, []);
+  fetch("http://localhost:8000/api/tasks", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("API error");
+      }
+      return res.json();
+    })
+    .then((data) => {
+      console.log("tasks:", data);
+      setTasks(data);
+    })
+    .catch((err) => {
+      console.error("fetch error:", err);
+    });
+}, []);
 
   // 🔍 検索フィルター
   const filteredTasks = tasks.filter((task) =>
@@ -119,7 +123,12 @@ export default function Page() {
               ⚙ Settings
             </a>
 
-            <a className="list-group-item list-group-item-action bg-dark text-danger">
+            <a
+              className="list-group-item list-group-item-action bg-dark text-danger"
+              onClick={handleLogout}
+              style={{ cursor: "pointer" }}
+            >
+
               🚪 Logout
             </a>
 

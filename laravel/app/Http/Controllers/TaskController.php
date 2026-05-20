@@ -8,30 +8,29 @@ class TaskController extends Controller
 {
   public function index()
   {
-    $tasks = Task::all();
-    return view('tasks.index', compact('tasks'));
+    return Task::where('user_id', auth()->id())->get();
   }
 
   public function create()
   {
     return view('tasks.create');
   }
-
-public function store(Request $request)
-{
+  public function store(Request $request)
+  {
     $request->validate([
-        'title' => 'required|max:255',
-        'description' => 'required',
+      'title' => 'required|max:255',
+      'description' => 'required',
     ]);
 
-    Task::create([
-        'title' => $request->title,
-        'description' => $request->description,
-        'user_id' => auth()->id(),
+    $task = Task::create([
+      'title' => $request->title,
+      'description' => $request->description,
+      'user_id' => auth()->id(),
     ]);
 
-    return redirect()->route('tasks.index')->with('success', 'タスクが作成されました。');
-}
+    return response()->json($task, 201);
+  }
+
 
   public function edit(Task $task)
   {
@@ -41,32 +40,29 @@ public function store(Request $request)
 
     return view('tasks.edit', compact('task'));
   }
-
-public function update(Request $request, Task $task)
-{
+  public function update(Request $request, Task $task)
+  {
     if (auth()->id() !== $task->user_id) {
-        return redirect()->route('tasks.index')
-            ->with('error', '許可されていない操作です。');
+      return response()->json(['error' => 'Forbidden'], 403);
     }
 
-    $request->validate([
-        'title' => 'required|max:255',
-        'description' => 'required',
+    $task->update([
+      'title' => $request->title,
+      'description' => $request->description,
     ]);
 
-    $task->update($request->all());
+    return response()->json($task);
+  }
 
-    return redirect()->route('tasks.index')->with('success', 'タスクが更新されました。');
-}
-public function destroy(Task $task)
-{
+
+  public function destroy(Task $task)
+  {
     if (auth()->id() !== $task->user_id) {
-        return redirect()->route('tasks.index')
-            ->with('error', '許可されていない操作です。');
+      return response()->json(['error' => 'Forbidden'], 403);
     }
 
     $task->delete();
 
-    return redirect()->route('tasks.index')->with('success', 'タスクが削除されました。');
-}
+    return response()->json(['message' => 'deleted']);
+  }
 }
