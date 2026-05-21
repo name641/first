@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import FeatureList from "./pages/FunctionList";
 import TasksCreate from "./pages/TasksCreate";
 import TaskEdit from "./pages/TaskEdit";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
       <Route path="/create" element={<Ce />} />
       <Route path="/taskscreate" element={<TasksCreate />} />
       <Route path="/taskedit/:id" element={<TaskEdit />} />
+      <Route path="/profile" element={<Profile />} />
     </Routes>
   );
 }

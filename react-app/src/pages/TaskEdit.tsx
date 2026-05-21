@@ -1,6 +1,11 @@
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
+type User = {
+  name: string;
+};
 
 const TaskEdit = () => {
   const navigate = useNavigate();
@@ -10,9 +15,27 @@ const TaskEdit = () => {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [open, setOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
   // ======================
-  // 取得
+  // user取得（統一）
+  // ======================
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    fetch("http://localhost:8000/api/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setUser(data))
+      .catch(() => {});
+  }, []);
+
+  // ======================
+  // task取得
   // ======================
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -36,24 +59,21 @@ const TaskEdit = () => {
   }, [id]);
 
   // ======================
-  // 更新
+  // update
   // ======================
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const token = localStorage.getItem("token");
 
-    const res = await fetch(
-      `http://localhost:8000/api/tasks/${id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ title, description }),
-      }
-    );
+    const res = await fetch(`http://localhost:8000/api/tasks/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ title, description }),
+    });
 
     if (res.ok) {
       navigate("/functionlist");
@@ -63,29 +83,30 @@ const TaskEdit = () => {
   };
 
   // ======================
-  // 削除
+  // delete
   // ======================
   const handleDelete = async () => {
-    const ok = window.confirm("本当に削除しますか？");
-    if (!ok) return;
+    if (!window.confirm("本当に削除しますか？")) return;
 
     const token = localStorage.getItem("token");
 
-    const res = await fetch(
-      `http://localhost:8000/api/tasks/${id}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const res = await fetch(`http://localhost:8000/api/tasks/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     if (res.ok) {
       navigate("/functionlist");
     } else {
       setError("削除失敗");
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/");
   };
 
   if (loading) {
@@ -97,81 +118,184 @@ const TaskEdit = () => {
   }
 
   return (
-    <div
-      className="container-fluid py-5"
-      style={{ backgroundColor: "#f5f7fb", minHeight: "100vh" }}
-    >
-      {/* ================= HEADER ================= */}
-      <div className="mb-4">
-        <h4 className="fw-bold">Task Edit</h4>
-        <p className="text-muted">タスクを編集・更新・削除できます</p>
+    <>
+      {/* ================= HEADER（統一） ================= */}
+      <header
+        className="navbar navbar-dark py-4"
+        style={{ backgroundColor: "#1f2937" }}
+      >
+        <div className="container-fluid px-3 d-flex justify-content-between align-items-center">
+
+          <a
+            className="navbar-brand fw-bold m-0"
+            onClick={() => navigate("/functionlist")}
+            style={{ cursor: "pointer" }}
+          >
+            MyApp
+          </a>
+
+          <div className="d-flex align-items-center gap-3">
+
+            <div
+              className="d-flex align-items-center gap-2 px-2 py-1 rounded"
+              style={{ backgroundColor: "#374151", cursor: "pointer" }}
+              onClick={() => navigate("/profile")}
+            >
+              <i className="bi bi-person-circle" />
+              <span style={{ color: "white" }}>
+                {user?.name}
+              </span>
+            </div>
+
+            <button
+              className="navbar-toggler"
+              onClick={() => setOpen(true)}
+            >
+              <span className="navbar-toggler-icon" />
+            </button>
+
+          </div>
+        </div>
+      </header>
+
+      {/* ================= OFFCANVAS ================= */}
+      <div
+        className={`offcanvas offcanvas-end text-bg-dark ${open ? "show" : ""}`}
+        style={{
+          visibility: open ? "visible" : "hidden",
+          width: "260px",
+        }}
+      >
+        <div className="offcanvas-header">
+          <h5 className="offcanvas-title">Menu</h5>
+          <button
+            className="btn-close btn-close-white"
+            onClick={() => setOpen(false)}
+          />
+        </div>
+
+        <div className="offcanvas-body">
+
+          <div className="list-group list-group-flush">
+
+            <a
+              className="list-group-item list-group-item-action bg-dark text-white"
+              onClick={() => navigate("/functionlist")}
+              style={{ cursor: "pointer" }}
+            >
+              📋 Tasks
+            </a>
+
+            <a
+              className="list-group-item list-group-item-action bg-dark text-white"
+              onClick={() => navigate("/profile")}
+              style={{ cursor: "pointer" }}
+            >
+              👤 Profile
+            </a>
+
+            <a
+              className="list-group-item list-group-item-action bg-dark text-danger"
+              onClick={handleLogout}
+              style={{ cursor: "pointer" }}
+            >
+              🚪 Logout
+            </a>
+
+          </div>
+        </div>
       </div>
 
-      {/* ================= CARD ================= */}
-      <div className="row justify-content-center">
-        <div className="col-md-6">
+      {open && (
+        <div
+          className="offcanvas-backdrop fade show"
+          onClick={() => setOpen(false)}
+        />
+      )}
 
-          <div
-            className="card border-0 shadow-sm"
-            style={{ borderRadius: "16px" }}
-          >
+      {/* ================= BODY（統一デザイン） ================= */}
+      <div
+        className="container-fluid py-5"
+        style={{ backgroundColor: "#f5f7fb", minHeight: "100vh" }}
+      >
+        <div className="row justify-content-center">
+          
+            <div className="col-12 col-md-6 col-lg-5">
 
-            <div className="card-body p-4">
+              <div
+                className="card border-0 mx-auto"
+                style={{
+                  maxWidth: "500px",
+                  width: "100%",
+                  borderRadius: "16px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                }}
+              >
+              <div className="card-body p-4">
 
-              {error && (
-                <div className="alert alert-danger py-2">
-                  {error}
-                </div>
-              )}
+                <h4 className="mb-3 fw-bold">✏️ Edit Task</h4>
 
-              <form onSubmit={handleUpdate}>
+                {error && (
+                  <div className="alert alert-danger py-2">
+                    {error}
+                  </div>
+                )}
 
-                {/* Title */}
-                <div className="mb-3">
-                  <label className="form-label">Title</label>
+                <form onSubmit={handleUpdate}>
+
                   <input
-                    className="form-control"
+                    className="form-control mb-3"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Title"
                   />
-                </div>
 
-                {/* Description */}
-                <div className="mb-4">
-                  <label className="form-label">Description</label>
                   <textarea
-                    className="form-control"
+                    className="form-control mb-4"
                     rows={5}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Description"
                   />
-                </div>
 
-                {/* Buttons */}
-                <div className="d-flex justify-content-between">
+                  <div className="d-flex justify-content-between">
 
-                  <button
-                    type="button"
-                    className="btn btn-outline-danger"
-                    onClick={handleDelete}
-                  >
-                    Delete
-                  </button>
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => navigate("/functionlist")}
+                    >
+                      Back
+                    </button>
 
-                  <button className="btn btn-primary px-4">
-                    Update
-                  </button>
+                    <div className="d-flex gap-2">
 
-                </div>
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={handleDelete}
+                      >
+                        Delete
+                      </button>
 
-              </form>
+                      <button className="btn btn-primary px-4">
+                        Update
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                </form>
+
+              </div>
 
             </div>
-          </div>
 
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

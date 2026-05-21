@@ -1,3 +1,4 @@
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +13,7 @@ export default function Page() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [user, setUser] = useState<any>(null);
 
 useEffect(() => {
   const token = localStorage.getItem("token");
@@ -39,6 +41,29 @@ useEffect(() => {
     });
 }, []);
 
+useEffect(() => {
+  const token = localStorage.getItem("token");
+
+  fetch("http://localhost:8000/api/me", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error("API error");
+      return res.json();
+    })
+    .then((data) => {
+      setUser(data);
+    })
+    .catch((err) => {
+      console.error("fetch me error:", err);
+    });
+}, []);
+
   // 🔍 検索フィルター
   const filteredTasks = tasks.filter((task) =>
     task.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -57,47 +82,65 @@ useEffect(() => {
 
   return (
     <>
-      {/* ================= HEADER ================= */}
-      <header 
-       className="navbar navbar-dark px-3"
-       style={{
+    {/* ================= HEADER ================= */}
+    <header
+      className="navbar navbar-dark py-4"
+      style={{
         backgroundColor: "#1f2937",
+      }}
+    >
+    <div className="container-fluid px-3 d-flex align-items-center justify-content-between">
+
+    {/* 左：ブランド */}
+    <a className="navbar-brand fw-bold m-0">
+      MyApp
+    </a>
+
+    {/* 中：検索 */}
+    <input
+      className="form-control w-50"
+      placeholder="タスクを検索..."
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+    />
+
+    {/* 右：ボタン */}
+    <div className="d-flex align-items-center gap-3">
+
+      <button
+        className="btn btn-success btn-sm"
+        onClick={goCreateTask}
+      >
+        + New Task
+      </button>
+
+      <div
+        className="d-flex align-items-center gap-2 px-2 py-1 rounded"
+        style={{
+          backgroundColor: "#374151",
+          cursor: "pointer",
         }}
       >
+        {/* アイコン（固定） */}
+      <i className="bi bi-person-circle" />
 
-        {/* 左：ブランド */}
-        <a className="navbar-brand fw-bold" href="#">
-          MyApp
-        </a>
+        {/* 名前 */}
+      <span style={{ color: "white", fontSize: "20px" }}>
+        {user?.name}
+      </span>
+    </div>
 
-        {/* 中：検索 */}
-        <input
-          className="form-control w-50"
-          placeholder="タスクを検索..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <button
+        className="navbar-toggler"
+        onClick={() => setOpen(true)}
+      >
+        <span className="navbar-toggler-icon" />
+      </button>
 
-        {/* 右：ボタン */}
-        <div className="d-flex gap-2">
+    </div>
 
-          <button 
-            className="btn btn-success btn-sm"
-            onClick={goCreateTask}
-          >
-            + New Task
-          </button>
-
-          <button
-            className="navbar-toggler"
-            onClick={() => setOpen(true)}
-          >
-            <span className="navbar-toggler-icon" />
-          </button>
-
-        </div>
-
-      </header>
+  </div>
+</header>
 
       {/* ================= OFFCANVAS ================= */}
       <div
@@ -122,14 +165,14 @@ useEffect(() => {
 
           <div className="list-group list-group-flush">
 
-            <a className="list-group-item list-group-item-action bg-dark text-white">
-              📋 Tasks
+            <a
+              className="list-group-item list-group-item-action bg-dark text-white"
+              onClick={() => navigate("/profile")}
+              style={{ cursor: "pointer" }}
+            >
+              👤 profile
             </a>
-
-            <a className="list-group-item list-group-item-action bg-dark text-white">
-              📊 Dashboard
-            </a>
-
+            
             <a className="list-group-item list-group-item-action bg-dark text-white">
               ⚙ Settings
             </a>
@@ -207,17 +250,17 @@ useEffect(() => {
                   <span className="badge bg-primary">
                     Task
                   </span>
-
+                  
                 </div>
 
               </div>
 
             </div>
           ))}
-
         </div>
 
       </div>
+      
     </>
   );
 }
