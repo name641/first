@@ -10,11 +10,33 @@ class TaskController extends Controller
     // ======================
     // 一覧取得
     // ======================
-    public function index()
-    {
-        return Task::where('user_id', auth()->id())->get();
+    public function index(Request $request)
+{
+    $query = Task::where('user_id', auth()->id());
+
+    // ★ステータスフィルター
+    if ($request->has('status') && $request->status !== 'all') {
+        $query->where('status', $request->status);
     }
 
+    return $query->latest()->get();
+}
+    // public function index(Request $request)
+    // {
+    //     $query = Task::where('user_id', auth()->id());
+
+    //     // ■ ステータスフィルター（将来用）
+    //     if ($request->has('status')) {
+    //         $query->where('status', $request->status);
+    //     }
+
+    //     // ■ 期限切れフィルター（将来用）
+    //     if ($request->has('overdue')) {
+    //         $query->where('deadline', '<', now());
+    //     }
+
+    //     return $query->latest()->get();
+    // }
     // ======================
     // create view
     // （APIだけなら不要）
@@ -27,24 +49,26 @@ class TaskController extends Controller
     // ======================
     // 新規作成
     // ======================
-public function store(Request $request)
-{
-    // dd($request->all());
-    $request->validate([
-        'title' => 'required|max:255',
-        'description' => 'required',
-        'deadline' => 'nullable|date',
-    ]);
+    public function store(Request $request)
+    {
+        // dd($request->all());
+        $request->validate([    
+            'title' => 'required|max:255',
+            'description' => 'required',
+            'deadline' => 'nullable|date',
+            'status' => 'nullable|in:todo,doing,done',
+        ]);
 
-    $task = Task::create([
-        'title' => $request->title,
-        'description' => $request->description,
-        'deadline' => $request->deadline,
-        'user_id' => auth()->id(),
-    ]);
+        $task = Task::create([
+            'title' => $request->title,
+            'description' => $request->description,
+            'deadline' => $request->deadline,
+            'status' => $request->status ?? 'todo',
+            'user_id' => auth()->id(),
+        ]);
 
-    return response()->json($task, 201);
-}
+        return response()->json($task, 201);
+    }
 
     // ======================
     // 編集画面
@@ -76,12 +100,14 @@ public function store(Request $request)
             'title' => 'required|max:255',
             'description' => 'required',
             'deadline' => 'nullable|date',
+            'status' => 'sometimes|in:todo,doing,done',
         ]);
 
         $task->update([
             'title' => $request->title,
             'description' => $request->description,
             'deadline' => $request->deadline,
+            'status' => $request->status ?? $task->status,
         ]);
 
         return response()->json($task);
@@ -103,5 +129,13 @@ public function store(Request $request)
         return response()->json([
             'message' => 'deleted'
         ]);
+    }
+        public function show(Task $task)
+    {
+        if (auth()->id() !== $task->user_id) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        return response()->json($task);
     }
 }

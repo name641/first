@@ -4,11 +4,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Hash;
 
-use App\Models\Task;
 use App\Models\User;
 
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\TaskController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,58 +48,25 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |-------------------------
-    | Tasks
+    | Tasks（ここが重要）
     |-------------------------
     */
 
-    // 一覧
-    Route::get('/tasks', function (Request $request) {
-        return Task::where('user_id', $request->user()->id)->get();
-    });
+    // 一覧（★フィルター対応済みControllerを使う）
+    Route::get('/tasks', [TaskController::class, 'index']);
 
     // 詳細
-    Route::get('/tasks/{id}', function (Request $request, $id) {
-        return Task::where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->firstOrFail();
-    });
+    Route::get('/tasks/{task}', [TaskController::class, 'show']);
 
     // 作成
-    Route::post('/tasks', function (Request $request) {
+    Route::post('/tasks', [TaskController::class, 'store']);
 
-        return Task::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'deadline' => $request->deadline, // ← これ追加
-            'completed' => false,
-            'user_id' => $request->user()->id,
-        ]);
-    });
-
-    // 更新
-    Route::put('/tasks/{id}', function (Request $request, $id) {
-
-        $task = Task::where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->firstOrFail();
-
-        $task->update([
-            'title' => $request->title,
-            'description' => $request->description,
-'deadline' => $request->deadline, 
-        ]);
-
-        return $task;
-    });
+    // 更新（PUT/PATCHどっちでもOK）
+    Route::put('/tasks/{task}', [TaskController::class, 'update']);
+    Route::patch('/tasks/{task}', [TaskController::class, 'update']);
 
     // 削除
-    Route::delete('/tasks/{id}', function ($id) {
-        Task::destroy($id);
-
-        return response()->json([
-            'message' => 'deleted'
-        ]);
-    });
+    Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);
 
 
     /*
