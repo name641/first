@@ -1,5 +1,5 @@
-
 import "bootstrap/dist/css/bootstrap.min.css";
+import "../css/FunctionList.css";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -14,52 +14,42 @@ type Task = {
 export default function Page() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); // ★追加
+  const [deadlineFilter, setDeadlineFilter] = useState("all"); // ★変更
   const [tasks, setTasks] = useState<Task[]>([]);
   const [user, setUser] = useState<any>(null);
 
   const navigate = useNavigate();
 
   // ======================
-  // task取得（フィルター対応）
+  // tasks取得
   // ======================
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    fetch(
-      `http://localhost:8000/api/tasks?status=${statusFilter}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
+    fetch(`http://localhost:8000/api/tasks`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((res) => {
         if (!res.ok) throw new Error("API error");
         return res.json();
       })
-      .then((data) => {
-        setTasks(data);
-      })
-      .catch((err) => {
-        console.error("fetch error:", err);
-      });
-  }, [statusFilter]); // ★重要
+      .then((data) => setTasks(data))
+      .catch((err) => console.error(err));
+  }, []);
 
   // ======================
-  // user取得（そのまま）
+  // user取得
   // ======================
   useEffect(() => {
     const token = localStorage.getItem("token");
 
     fetch("http://localhost:8000/api/me", {
-      method: "GET",
       headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
     })
@@ -69,26 +59,46 @@ export default function Page() {
   }, []);
 
   // ======================
-  // 検索（フロント側）
+  // search + deadline filter
   // ======================
-  const filteredTasks = tasks.filter(
-    (task) =>
+  const filteredTasks = tasks.filter((task) => {
+    const matchSearch =
       task.title.toLowerCase().includes(search.toLowerCase()) ||
-      task.description.toLowerCase().includes(search.toLowerCase())
-  );
+      task.description.toLowerCase().includes(search.toLowerCase());
+
+    if (!matchSearch) return false;
+
+    if (deadlineFilter === "all") return true;
+
+    if (!task.deadline) return false;
+
+    const today = new Date();
+    const d = new Date(task.deadline);
+
+    today.setHours(0, 0, 0, 0);
+    d.setHours(0, 0, 0, 0);
+
+    const diff = Math.ceil(
+      (d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (deadlineFilter === "overdue") return diff < 0;
+    if (deadlineFilter === "today") return diff === 0;
+    if (deadlineFilter === "future") return diff > 0;
+
+    return true;
+  });
 
   // ======================
-  // UI系そのまま
+  // statusで分割（Trello）
   // ======================
-  const goCreateTask = () => {
-    navigate("/taskscreate");
-  };
+  const todoTasks = filteredTasks.filter((t) => t.status === "todo");
+  const doingTasks = filteredTasks.filter((t) => t.status === "doing");
+  const doneTasks = filteredTasks.filter((t) => t.status === "done");
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  };
-
+  // ======================
+  // utils
+  // ======================
   const getDeadlineColor = (deadline?: string | null) => {
     if (!deadline) return "#6c757d";
 
@@ -113,87 +123,159 @@ export default function Page() {
     d.setHours(0, 0, 0, 0);
 
     const diff = Math.ceil(
-      (d.getTime() - today.getTime()) /
-        (1000 * 60 * 60 * 24)
+      (d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
     );
 
     if (diff < 0) return "期限切れ";
     if (diff === 0) return "今日";
-
     return `あと${diff}日`;
   };
+
+  const goCreateTask = () => navigate("/taskscreate");
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/");
+  };
+
+  // ======================
+  // Card
+  // ======================
+  const TaskCard = ({ task }: { task: Task }) => (
+    <div
+      className="p-3 bg-white rounded shadow-sm mb-3"
+      style={{
+        borderLeft: `5px solid ${getDeadlineColor(task.deadline)}`,
+        cursor: "pointer",
+      }}
+      onClick={() => navigate(`/taskedit/${task.id}`)}
+    >
+      <div className="d-flex justify-content-between">
+        <h6 className="fw-bold">{task.title}</h6>
+
+        <span
+          className={`badge ${
+            task.status === "done"
+              ? "bg-success"
+              : task.status === "doing"
+              ? "bg-warning text-dark"
+              : "bg-secondary"
+          }`}
+        >
+          {task.status === "done"
+            ? "完了"
+            : task.status === "doing"
+            ? "進行中"
+            : "未着手"}
+        </span>
+      </div>
+
+      <p className="text-muted small mt-2">{task.description}</p>
+
+      <div className="d-flex justify-content-between small">
+        <span>📅 {task.deadline ?? "未設定"}</span>
+        <span style={{ color: getDeadlineColor(task.deadline), fontWeight: 600 }}>
+          {getRemainingDays(task.deadline)}
+        </span>
+      </div>
+    </div>
+  );
+
+  // ======================
+  // Column
+  // ======================
+  const Column = ({
+    title,
+    tasks,
+    color,
+  }: {
+    title: string;
+    tasks: Task[];
+    color: string;
+  }) => (
+    <div className="col-md-4">
+      <div
+        className="p-3 rounded"
+        style={{ background: "#f5f7fb", minHeight: "80vh" }}
+      >
+        <h5 className="mb-3 d-flex align-items-center gap-2">
+          <span
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              background: color,
+              display: "inline-block",
+            }}
+          />
+          {title} ({tasks.length})
+        </h5>
+
+        {tasks.map((task) => (
+          <TaskCard key={task.id} task={task} />
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <>
       {/* ================= HEADER ================= */}
- <header
-        className="navbar navbar-dark py-4"
-        style={{ backgroundColor: "#1f2937" }}
-      >
-        <div className="container-fluid px-3 d-flex justify-content-between align-items-center">
+      <header className="d-flex justify-content-between align-items-center px-4 py-3 bg-dark text-white">
+        <h4
+          className="m-0"
+          onClick={() => navigate("/functionlist")}
+          style={{ cursor: "pointer" }}
+        >
+          MyApp
+        </h4>
 
-          <a
-            className="navbar-brand fw-bold m-0"
-            onClick={() => navigate("/functionlist")}
-            style={{ cursor: "pointer" }}
+        <div className="d-flex align-items-center gap-3">
+          <span className="small text-light">{user?.name}</span>
+
+          <button className="btn btn-success btn-sm" onClick={goCreateTask}>
+            + New Task
+          </button>
+
+          <button
+            className="btn btn-outline-light btn-sm"
+            onClick={() => setOpen(true)}
           >
-            MyApp
-          </a>
-
-          {/* ★検索 + フィルター（UI崩さない追加） */}
-          <div className="d-flex gap-2 w-50">
-
-            <input
-              className="form-control"
-              placeholder="タスクを検索..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-
-            <select
-              className="form-select w-auto"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">全て</option>
-              <option value="todo">未着手</option>
-              <option value="doing">進行中</option>
-              <option value="done">完了</option>
-            </select>
-          </div>
-
-          <div className="d-flex align-items-center gap-3">
-
-            <button
-              className="btn btn-success btn-sm"
-              onClick={goCreateTask}
-            >
-              + New Task
-            </button>
-
-            <div
-              className="d-flex align-items-center gap-2 px-2 py-1 rounded"
-              style={{
-                backgroundColor: "#374151",
-                cursor: "pointer",
-              }}
-            >
-              <i className="bi bi-person-circle" />
-              <span style={{ color: "white", fontSize: "20px" }}>
-                {user?.name}
-              </span>
-            </div>
-
-            <button
-              className="navbar-toggler"
-              onClick={() => setOpen(true)}
-            >
-              <span className="navbar-toggler-icon" />
-            </button>
-
-          </div>
+            ☰
+          </button>
         </div>
       </header>
+
+      {/* ================= FILTER ================= */}
+      <div className="d-flex gap-2 p-3 bg-white border-bottom">
+        <input
+          className="form-control"
+          placeholder="タスクを検索..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        {/* ★ここが変更 */}
+        <select
+          className="form-select w-auto"
+          value={deadlineFilter}
+          onChange={(e) => setDeadlineFilter(e.target.value)}
+        >
+          <option value="all">全て</option>
+          <option value="overdue">期限切れ</option>
+          <option value="today">今日</option>
+          <option value="future">今後のタスク</option>
+        </select>
+      </div>
+
+      {/* ================= BOARD ================= */}
+      <div className="container-fluid py-4">
+        <div className="row g-3">
+          <Column title="TODO" tasks={todoTasks} color="#6c757d" />
+          <Column title="DOING" tasks={doingTasks} color="#ffc107" />
+          <Column title="DONE" tasks={doneTasks} color="#198754" />
+        </div>
+      </div>
 
       {/* ================= OFFCANVAS ================= */}
       <div
@@ -214,9 +296,7 @@ export default function Page() {
         </div>
 
         <div className="offcanvas-body">
-
           <div className="list-group list-group-flush">
-
             <a
               className="list-group-item list-group-item-action bg-dark text-white"
               onClick={() => navigate("/profile")}
@@ -232,7 +312,6 @@ export default function Page() {
             >
               🚪 Logout
             </a>
-
           </div>
         </div>
       </div>
@@ -243,85 +322,6 @@ export default function Page() {
           onClick={() => setOpen(false)}
         />
       )}
-
-      {/* ================= BODY ================= */}
-      <div
-        className="container-fluid py-5"
-        style={{
-          backgroundColor: "#f5f7fb",
-          minHeight: "100vh",
-        }}
-      >
-        <h4 className="mb-4">📋 Task List</h4>
-
-        <div className="row g-4">
-
-          {filteredTasks.map((task, index) => (
-            <div className="col-12 col-md-4" key={task.id}>
-
-              <div
-                className="card h-100 border-0"
-                style={{
-                  borderRadius: "16px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                  borderLeft: `6px solid ${getDeadlineColor(task.deadline)}`,
-                }}
-                onClick={() =>
-                  navigate(`/taskedit/${task.id}`)
-                }
-              >
-
-                <div className="card-body">
-
-                  <span className="badge bg-secondary mb-2">
-                    #{index + 1}
-                  </span>
-
-                  <h5 className="fw-bold">{task.title}</h5>
-
-                  <p className="text-muted">{task.description}</p>
-
-                  <small className="text-muted">
-                    📅 {task.deadline ?? "期限未設定"}
-                  </small>
-
-                  <br />
-
-                  <small style={{ color: getDeadlineColor(task.deadline), fontWeight: "bold" }}>
-                    {getRemainingDays(task.deadline)}
-                  </small>
-
-                  {/* STATUS */}
-                  <div className="d-flex gap-2 mt-3">
-
-                    <span className="badge bg-primary">
-                      Task
-                    </span>
-
-                    <span className={`badge ${
-                      task.status === "done"
-                        ? "bg-success"
-                        : task.status === "doing"
-                        ? "bg-warning text-dark"
-                        : "bg-secondary"
-                    }`}>
-                      {task.status === "done"
-                        ? "完了"
-                        : task.status === "doing"
-                        ? "進行中"
-                        : "未着手"}
-                    </span>
-
-                  </div>
-
-                </div>
-              </div>
-
-            </div>
-          ))}
-
-        </div>
-      </div>
     </>
   );
 }

@@ -1,0 +1,129 @@
+
+body {
+  font-family: "Segoe UI", "Noto Sans JP", sans-serif;
+  background-color: #f5f7fb;
+}
+
+
+.navbar {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.navbar-brand {
+  font-size: 20px;
+  letter-spacing: 0.5px;
+}
+
+.navbar input.form-control {
+  border-radius: 10px;
+  border: none;
+  padding: 8px 12px;
+  box-shadow: none;
+}
+
+.navbar select.form-select {
+  border-radius: 10px;
+  border: none;
+}
+
+
+.navbar .rounded {
+  transition: 0.2s ease;
+}
+
+.navbar .rounded:hover {
+  background-color: #4b5563;
+}
+
+
+.offcanvas {
+  box-shadow: -6px 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.list-group-item {
+  border: none;
+  padding: 12px 16px;
+}
+
+.list-group-item:hover {
+  background-color: #111827 !important;
+}
+
+.task-signboard {
+  background: white;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  overflow: hidden;
+  padding: 18px 16px 16px 18px;
+  min-height: 140px;
+}
+
+.task-signboard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12) !important;
+}
+
+.task-signboard h5 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.task-signboard p {
+  font-size: 14px;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+
+.task-signboard small {
+  font-size: 12px;
+}
+
+.badge {
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+
+.row.g-4 {
+  row-gap: 20px;
+}
+
+
+.btn-success {
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-weight: 500;
+}
+
+.navbar .w-50 {
+  gap: 8px;
+}
+
+.navbar .form-control:focus,
+.navbar .form-select:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  border-color: transparent;
+}
+
+
+.task-signboard {
+  border-radius: 16px;
+  transition: 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .navbar .w-50 {
+    width: 100% !important;
+  }
+
+  .navbar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .task-signboard {
+    margin-bottom: 10px;
+  }
+} 
