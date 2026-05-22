@@ -12,7 +12,8 @@ const TaskEdit = () => {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [deadline, setDeadline] = useState<string>(""); // ←追加
+  const [deadline, setDeadline] = useState<string>("");
+  const [status, setStatus] = useState<"todo" | "doing" | "done">("todo");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -54,7 +55,8 @@ const TaskEdit = () => {
       .then((data) => {
         setTitle(data.title);
         setDescription(data.description);
-        setDeadline(data.deadline || ""); // ←追加
+        setDeadline(data.deadline || "");
+        setStatus(data.status || "todo"); // ★追加
       })
       .catch(() => setError("取得失敗"))
       .finally(() => setLoading(false));
@@ -77,7 +79,8 @@ const TaskEdit = () => {
       body: JSON.stringify({
         title,
         description,
-        deadline: deadline || null, // ←追加
+        deadline: deadline || null,
+        status, // ★追加
       }),
     });
 
@@ -179,6 +182,7 @@ const TaskEdit = () => {
         </div>
 
         <div className="offcanvas-body">
+
           <div className="list-group list-group-flush">
 
             <a
@@ -206,6 +210,7 @@ const TaskEdit = () => {
             </a>
 
           </div>
+
         </div>
       </div>
 
@@ -261,13 +266,27 @@ const TaskEdit = () => {
                     placeholder="Description"
                   />
 
-                  {/* 👉 追加した deadline */}
                   <input
                     type="date"
-                    className="form-control mb-4"
+                    className="form-control mb-3"
                     value={deadline}
                     onChange={(e) => setDeadline(e.target.value)}
                   />
+
+                  {/* ★ STATUS追加（UI崩さない） */}
+                  <select
+                    className="form-control mb-4"
+                    value={status}
+                    onChange={(e) =>
+                      setStatus(
+                        e.target.value as "todo" | "doing" | "done"
+                      )
+                    }
+                  >
+                    <option value="todo">未着手</option>
+                    <option value="doing">進行中</option>
+                    <option value="done">完了</option>
+                  </select>
 
                   <div className="d-flex justify-content-between">
 
@@ -310,306 +329,3 @@ const TaskEdit = () => {
 };
 
 export default TaskEdit;
-
-
-// import "bootstrap/dist/css/bootstrap.min.css";
-// import { useEffect, useState } from "react";
-// import { useNavigate, useParams } from "react-router-dom";
-
-// type User = {
-//   name: string;
-// };
-
-// const TaskEdit = () => {
-//   const navigate = useNavigate();
-//   const { id } = useParams();
-
-//   const [title, setTitle] = useState("");
-//   const [description, setDescription] = useState("");
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState("");
-//   const [open, setOpen] = useState(false);
-//   const [user, setUser] = useState<User | null>(null);
-
-//   // ======================
-//   // user取得（統一）
-//   // ======================
-//   useEffect(() => {
-//     const token = localStorage.getItem("token");
-
-//     fetch("http://localhost:8000/api/me", {
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//       },
-//     })
-//       .then((res) => res.json())
-//       .then((data) => setUser(data))
-//       .catch(() => {});
-//   }, []);
-
-//   // ======================
-//   // task取得
-//   // ======================
-//   useEffect(() => {
-//     const token = localStorage.getItem("token");
-
-//     fetch(`http://localhost:8000/api/tasks/${id}`, {
-//       headers: {
-//         Accept: "application/json",
-//         Authorization: `Bearer ${token}`,
-//       },
-//     })
-//       .then((res) => {
-//         if (!res.ok) throw new Error();
-//         return res.json();
-//       })
-//       .then((data) => {
-//         setTitle(data.title);
-//         setDescription(data.description);
-//       })
-//       .catch(() => setError("取得失敗"))
-//       .finally(() => setLoading(false));
-//   }, [id]);
-
-//   // ======================
-//   // update
-//   // ======================
-//   const handleUpdate = async (e: React.FormEvent) => {
-//     e.preventDefault();
-
-//     const token = localStorage.getItem("token");
-
-//     const res = await fetch(`http://localhost:8000/api/tasks/${id}`, {
-//       method: "PUT",
-//       headers: {
-//         "Content-Type": "application/json",
-//         Authorization: `Bearer ${token}`,
-//       },
-//       body: JSON.stringify({ title, description }),
-//     });
-
-//     if (res.ok) {
-//       navigate("/functionlist");
-//     } else {
-//       setError("更新失敗");
-//     }
-//   };
-
-//   // ======================
-//   // delete
-//   // ======================
-//   const handleDelete = async () => {
-//     if (!window.confirm("本当に削除しますか？")) return;
-
-//     const token = localStorage.getItem("token");
-
-//     const res = await fetch(`http://localhost:8000/api/tasks/${id}`, {
-//       method: "DELETE",
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//       },
-//     });
-
-//     if (res.ok) {
-//       navigate("/functionlist");
-//     } else {
-//       setError("削除失敗");
-//     }
-//   };
-
-//   const handleLogout = () => {
-//     localStorage.removeItem("token");
-//     navigate("/");
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="d-flex justify-content-center mt-5">
-//         <div className="spinner-border text-primary" />
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <>
-//       {/* ================= HEADER（統一） ================= */}
-//       <header
-//         className="navbar navbar-dark py-4"
-//         style={{ backgroundColor: "#1f2937" }}
-//       >
-//         <div className="container-fluid px-3 d-flex justify-content-between align-items-center">
-
-//           <a
-//             className="navbar-brand fw-bold m-0"
-//             onClick={() => navigate("/functionlist")}
-//             style={{ cursor: "pointer" }}
-//           >
-//             MyApp
-//           </a>
-
-//           <div className="d-flex align-items-center gap-3">
-
-//             <div
-//               className="d-flex align-items-center gap-2 px-2 py-1 rounded"
-//               style={{ backgroundColor: "#374151", cursor: "pointer" }}
-//               onClick={() => navigate("/profile")}
-//             >
-//               <i className="bi bi-person-circle" />
-//               <span style={{ color: "white" }}>
-//                 {user?.name}
-//               </span>
-//             </div>
-
-//             <button
-//               className="navbar-toggler"
-//               onClick={() => setOpen(true)}
-//             >
-//               <span className="navbar-toggler-icon" />
-//             </button>
-
-//           </div>
-//         </div>
-//       </header>
-
-//       {/* ================= OFFCANVAS ================= */}
-//       <div
-//         className={`offcanvas offcanvas-end text-bg-dark ${open ? "show" : ""}`}
-//         style={{
-//           visibility: open ? "visible" : "hidden",
-//           width: "260px",
-//         }}
-//       >
-//         <div className="offcanvas-header">
-//           <h5 className="offcanvas-title">Menu</h5>
-//           <button
-//             className="btn-close btn-close-white"
-//             onClick={() => setOpen(false)}
-//           />
-//         </div>
-
-//         <div className="offcanvas-body">
-
-//           <div className="list-group list-group-flush">
-
-//             <a
-//               className="list-group-item list-group-item-action bg-dark text-white"
-//               onClick={() => navigate("/functionlist")}
-//               style={{ cursor: "pointer" }}
-//             >
-//               📋 Tasks
-//             </a>
-
-//             <a
-//               className="list-group-item list-group-item-action bg-dark text-white"
-//               onClick={() => navigate("/profile")}
-//               style={{ cursor: "pointer" }}
-//             >
-//               👤 Profile
-//             </a>
-
-//             <a
-//               className="list-group-item list-group-item-action bg-dark text-danger"
-//               onClick={handleLogout}
-//               style={{ cursor: "pointer" }}
-//             >
-//               🚪 Logout
-//             </a>
-
-//           </div>
-//         </div>
-//       </div>
-
-//       {open && (
-//         <div
-//           className="offcanvas-backdrop fade show"
-//           onClick={() => setOpen(false)}
-//         />
-//       )}
-
-//       {/* ================= BODY（統一デザイン） ================= */}
-//       <div
-//         className="container-fluid py-5"
-//         style={{ backgroundColor: "#f5f7fb", minHeight: "100vh" }}
-//       >
-//         <div className="row justify-content-center">
-          
-//             <div className="col-12 col-md-6 col-lg-5">
-
-//               <div
-//                 className="card border-0 mx-auto"
-//                 style={{
-//                   maxWidth: "500px",
-//                   width: "100%",
-//                   borderRadius: "16px",
-//                   boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-//                 }}
-//               >
-//               <div className="card-body p-4">
-
-//                 <h4 className="mb-3 fw-bold">✏️ Edit Task</h4>
-
-//                 {error && (
-//                   <div className="alert alert-danger py-2">
-//                     {error}
-//                   </div>
-//                 )}
-
-//                 <form onSubmit={handleUpdate}>
-
-//                   <input
-//                     className="form-control mb-3"
-//                     value={title}
-//                     onChange={(e) => setTitle(e.target.value)}
-//                     placeholder="Title"
-//                   />
-
-//                   <textarea
-//                     className="form-control mb-4"
-//                     rows={5}
-//                     value={description}
-//                     onChange={(e) => setDescription(e.target.value)}
-//                     placeholder="Description"
-//                   />
-
-//                   <div className="d-flex justify-content-between">
-
-//                     <button
-//                       type="button"
-//                       className="btn btn-outline-secondary"
-//                       onClick={() => navigate("/functionlist")}
-//                     >
-//                       Back
-//                     </button>
-
-//                     <div className="d-flex gap-2">
-
-//                       <button
-//                         type="button"
-//                         className="btn btn-danger"
-//                         onClick={handleDelete}
-//                       >
-//                         Delete
-//                       </button>
-
-//                       <button className="btn btn-primary px-4">
-//                         Update
-//                       </button>
-
-//                     </div>
-
-//                   </div>
-
-//                 </form>
-
-//               </div>
-
-//             </div>
-
-//           </div>
-//         </div>
-//       </div>
-//     </>
-//   );
-// };
-
-// export default TaskEdit;

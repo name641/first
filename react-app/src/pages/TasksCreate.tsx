@@ -11,11 +11,9 @@ const TasksCreate = () => {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-
-  // ======================
-  // deadline追加
-  // ======================
   const [deadline, setDeadline] = useState("");
+
+  const [status, setStatus] = useState<"todo" | "doing" | "done">("todo");
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,19 +22,35 @@ const TasksCreate = () => {
   const [user, setUser] = useState<User | null>(null);
 
   // ======================
-  // user取得
+  // 👇ここが追加部分（useEffect）
   // ======================
   useEffect(() => {
     const token = localStorage.getItem("token");
 
+    if (!token) {
+      console.log("tokenなし");
+      return;
+    }
+
     fetch("http://localhost:8000/api/me", {
       headers: {
         Authorization: `Bearer ${token}`,
+        Accept: "application/json",
       },
     })
-      .then((res) => res.json())
-      .then((data) => setUser(data))
-      .catch(() => {});
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("auth error");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log("user:", data);
+        setUser(data);
+      })
+      .catch((err) => {
+        console.error("me API error:", err);
+      });
   }, []);
 
   // ======================
@@ -60,9 +74,7 @@ const TasksCreate = () => {
     d.setHours(0, 0, 0, 0);
 
     if (d < today) return "#dc3545";
-
     if (d.getTime() === today.getTime()) return "#ffc107";
-
     return "#198754";
   };
 
@@ -79,8 +91,7 @@ const TasksCreate = () => {
     d.setHours(0, 0, 0, 0);
 
     const diff = Math.ceil(
-      (d.getTime() - today.getTime()) /
-        (1000 * 60 * 60 * 24)
+      (d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
     );
 
     if (diff < 0) return "期限切れ";
@@ -95,8 +106,6 @@ const TasksCreate = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-// console.log("submit clicked");
-
     setError("");
     setLoading(true);
 
@@ -110,22 +119,17 @@ const TasksCreate = () => {
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
-
-        // ======================
-        // deadline追加
-        // ======================
         body: JSON.stringify({
           title,
           description,
           deadline: deadline || null,
+          status,
         }),
       });
-// console.log("status:", response.status);
-// console.log("ok:", response.ok);
+
       if (!response.ok) throw new Error();
 
       navigate("/functionlist");
-
     } catch {
       setError("タスク作成に失敗しました");
     } finally {
@@ -141,7 +145,6 @@ const TasksCreate = () => {
         style={{ backgroundColor: "#1f2937" }}
       >
         <div className="container-fluid px-3 d-flex justify-content-between align-items-center">
-
           <a
             className="navbar-brand fw-bold m-0"
             onClick={() => navigate("/functionlist")}
@@ -151,17 +154,12 @@ const TasksCreate = () => {
           </a>
 
           <div className="d-flex align-items-center gap-3">
-
             <div
               className="d-flex align-items-center gap-2 px-2 py-1 rounded"
-              style={{
-                backgroundColor: "#374151",
-                cursor: "pointer",
-              }}
+              style={{ backgroundColor: "#374151", cursor: "pointer" }}
               onClick={() => navigate("/profile")}
             >
               <i className="bi bi-person-circle" />
-
               <span style={{ color: "white" }}>
                 {user?.name}
               </span>
@@ -173,13 +171,13 @@ const TasksCreate = () => {
             >
               <span className="navbar-toggler-icon" />
             </button>
-
           </div>
         </div>
       </header>
 
-      {/* ================= OFFCANVAS ================= */}
-      <div
+      {/* 以下省略（元のUIそのままでOK） */}
+       {/* ================= OFFCANVAS ================= */}
+     <div
         className={`offcanvas offcanvas-end text-bg-dark ${
           open ? "show" : ""
         }`}
@@ -189,16 +187,11 @@ const TasksCreate = () => {
         }}
       >
         <div className="offcanvas-header">
-
-          <h5 className="offcanvas-title">
-            Menu
-          </h5>
-
+          <h5 className="offcanvas-title">Menu</h5>
           <button
             className="btn-close btn-close-white"
             onClick={() => setOpen(false)}
           />
-
         </div>
 
         <div className="offcanvas-body">
@@ -233,7 +226,6 @@ const TasksCreate = () => {
         </div>
       </div>
 
-      {/* backdrop */}
       {open && (
         <div
           className="offcanvas-backdrop fade show"
@@ -249,7 +241,6 @@ const TasksCreate = () => {
           minHeight: "100vh",
         }}
       >
-
         <div className="row justify-content-center">
 
           <div className="col-12 col-md-6 col-lg-5">
@@ -261,16 +252,11 @@ const TasksCreate = () => {
                 width: "100%",
                 borderRadius: "16px",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-
-                // ======================
-                // deadline border color
-                // ======================
                 borderLeft: `6px solid ${getDeadlineColor(deadline)}`,
               }}
             >
 
               <div className="card-body p-4">
-
                 <h4 className="mb-3 fw-bold">
                   ➕ Create Task
                 </h4>
@@ -283,18 +269,14 @@ const TasksCreate = () => {
 
                 <form onSubmit={handleSubmit}>
 
-                  {/* title */}
                   <input
                     className="form-control mb-3"
                     placeholder="Title"
                     value={title}
-                    onChange={(e) =>
-                      setTitle(e.target.value)
-                    }
+                    onChange={(e) => setTitle(e.target.value)}
                     required
                   />
 
-                  {/* description */}
                   <textarea
                     className="form-control mb-3"
                     rows={5}
@@ -306,9 +288,6 @@ const TasksCreate = () => {
                     required
                   />
 
-                  {/* ======================
-                  deadline追加
-                  ====================== */}
                   <input
                     type="date"
                     className="form-control mb-2"
@@ -318,7 +297,24 @@ const TasksCreate = () => {
                     }
                   />
 
-                  {/* deadline status */}
+                  {/* ★ STATUS追加（UI崩さない） */}
+                  <select
+                    className="form-control mb-2"
+                    value={status}
+                    onChange={(e) =>
+                      setStatus(
+                        e.target.value as
+                          | "todo"
+                          | "doing"
+                          | "done"
+                      )
+                    }
+                  >
+                    <option value="todo">未着手</option>
+                    <option value="doing">進行中</option>
+                    <option value="done">完了</option>
+                  </select>
+
                   <small
                     style={{
                       color: getDeadlineColor(deadline),

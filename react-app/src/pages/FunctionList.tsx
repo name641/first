@@ -1,3 +1,4 @@
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -7,30 +8,35 @@ type Task = {
   title: string;
   description: string;
   deadline?: string | null;
+  status?: "todo" | "doing" | "done";
 };
 
 export default function Page() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all"); // ★追加
   const [tasks, setTasks] = useState<Task[]>([]);
   const [user, setUser] = useState<any>(null);
 
   const navigate = useNavigate();
 
   // ======================
-  // task取得
+  // task取得（フィルター対応）
   // ======================
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    fetch("http://localhost:8000/api/tasks", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    fetch(
+      `http://localhost:8000/api/tasks?status=${statusFilter}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
       .then((res) => {
         if (!res.ok) throw new Error("API error");
         return res.json();
@@ -41,10 +47,10 @@ export default function Page() {
       .catch((err) => {
         console.error("fetch error:", err);
       });
-  }, []);
+  }, [statusFilter]); // ★重要
 
   // ======================
-  // user取得
+  // user取得（そのまま）
   // ======================
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -57,20 +63,13 @@ export default function Page() {
         Authorization: `Bearer ${token}`,
       },
     })
-      .then((res) => {
-        if (!res.ok) throw new Error("API error");
-        return res.json();
-      })
-      .then((data) => {
-        setUser(data);
-      })
-      .catch((err) => {
-        console.error("fetch me error:", err);
-      });
+      .then((res) => res.json())
+      .then((data) => setUser(data))
+      .catch((err) => console.error(err));
   }, []);
 
   // ======================
-  // 検索フィルター
+  // 検索（フロント側）
   // ======================
   const filteredTasks = tasks.filter(
     (task) =>
@@ -79,23 +78,17 @@ export default function Page() {
   );
 
   // ======================
-  // 新規作成
+  // UI系そのまま
   // ======================
   const goCreateTask = () => {
     navigate("/taskscreate");
   };
 
-  // ======================
-  // logout
-  // ======================
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
   };
 
-  // ======================
-  // deadline色判定
-  // ======================
   const getDeadlineColor = (deadline?: string | null) => {
     if (!deadline) return "#6c757d";
 
@@ -105,19 +98,11 @@ export default function Page() {
     today.setHours(0, 0, 0, 0);
     d.setHours(0, 0, 0, 0);
 
-    // 期限切れ
     if (d < today) return "#dc3545";
-
-    // 今日
     if (d.getTime() === today.getTime()) return "#ffc107";
-
-    // 未来
     return "#198754";
   };
 
-  // ======================
-  // 残り日数
-  // ======================
   const getRemainingDays = (deadline?: string | null) => {
     if (!deadline) return null;
 
@@ -141,29 +126,44 @@ export default function Page() {
   return (
     <>
       {/* ================= HEADER ================= */}
-      <header
+ <header
         className="navbar navbar-dark py-4"
         style={{ backgroundColor: "#1f2937" }}
       >
-        <div className="container-fluid px-3 d-flex align-items-center justify-content-between">
+        <div className="container-fluid px-3 d-flex justify-content-between align-items-center">
 
-          {/* Logo */}
-          <a className="navbar-brand fw-bold m-0">
+          <a
+            className="navbar-brand fw-bold m-0"
+            onClick={() => navigate("/functionlist")}
+            style={{ cursor: "pointer" }}
+          >
             MyApp
           </a>
 
-          {/* Search */}
-          <input
-            className="form-control w-50"
-            placeholder="タスクを検索..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+          {/* ★検索 + フィルター（UI崩さない追加） */}
+          <div className="d-flex gap-2 w-50">
 
-          {/* Right */}
+            <input
+              className="form-control"
+              placeholder="タスクを検索..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+
+            <select
+              className="form-select w-auto"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">全て</option>
+              <option value="todo">未着手</option>
+              <option value="doing">進行中</option>
+              <option value="done">完了</option>
+            </select>
+          </div>
+
           <div className="d-flex align-items-center gap-3">
 
-            {/* New Task */}
             <button
               className="btn btn-success btn-sm"
               onClick={goCreateTask}
@@ -171,7 +171,6 @@ export default function Page() {
               + New Task
             </button>
 
-            {/* User */}
             <div
               className="d-flex align-items-center gap-2 px-2 py-1 rounded"
               style={{
@@ -180,18 +179,11 @@ export default function Page() {
               }}
             >
               <i className="bi bi-person-circle" />
-
-              <span
-                style={{
-                  color: "white",
-                  fontSize: "20px",
-                }}
-              >
+              <span style={{ color: "white", fontSize: "20px" }}>
                 {user?.name}
               </span>
             </div>
 
-            {/* Menu */}
             <button
               className="navbar-toggler"
               onClick={() => setOpen(true)}
@@ -214,16 +206,11 @@ export default function Page() {
         }}
       >
         <div className="offcanvas-header">
-
-          <h5 className="offcanvas-title">
-            Menu
-          </h5>
-
+          <h5 className="offcanvas-title">Menu</h5>
           <button
             className="btn-close btn-close-white"
             onClick={() => setOpen(false)}
           />
-
         </div>
 
         <div className="offcanvas-body">
@@ -235,7 +222,7 @@ export default function Page() {
               onClick={() => navigate("/profile")}
               style={{ cursor: "pointer" }}
             >
-              👤 profile
+              👤 Profile
             </a>
 
             <a
@@ -247,11 +234,9 @@ export default function Page() {
             </a>
 
           </div>
-
         </div>
       </div>
 
-      {/* Backdrop */}
       {open && (
         <div
           className="offcanvas-backdrop fade show"
@@ -267,36 +252,19 @@ export default function Page() {
           minHeight: "100vh",
         }}
       >
-
-        <h4 className="mb-4">
-          📋 Task List
-        </h4>
+        <h4 className="mb-4">📋 Task List</h4>
 
         <div className="row g-4">
 
           {filteredTasks.map((task, index) => (
-
-            <div
-              className="col-12 col-md-4"
-              key={task.id}
-            >
+            <div className="col-12 col-md-4" key={task.id}>
 
               <div
                 className="card h-100 border-0"
                 style={{
                   borderRadius: "16px",
                   boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                  transition: "all 0.2s ease",
                   borderLeft: `6px solid ${getDeadlineColor(task.deadline)}`,
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform =
-                    "translateY(-4px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform =
-                    "translateY(0)";
                 }}
                 onClick={() =>
                   navigate(`/taskedit/${task.id}`)
@@ -305,56 +273,51 @@ export default function Page() {
 
                 <div className="card-body">
 
-                  {/* Number */}
                   <span className="badge bg-secondary mb-2">
                     #{index + 1}
                   </span>
 
-                  {/* Title */}
-                  <h5 className="card-title fw-bold">
-                    {task.title}
-                  </h5>
+                  <h5 className="fw-bold">{task.title}</h5>
 
-                  {/* Description */}
-                  <p className="card-text text-muted">
-                    {task.description}
-                  </p>
+                  <p className="text-muted">{task.description}</p>
 
-                  {/* Deadline */}
-                  <div className="mt-2">
+                  <small className="text-muted">
+                    📅 {task.deadline ?? "期限未設定"}
+                  </small>
 
-                    <small className="text-muted">
-                      📅 {task.deadline ?? "期限未設定"}
-                    </small>
+                  <br />
 
-                    <br />
+                  <small style={{ color: getDeadlineColor(task.deadline), fontWeight: "bold" }}>
+                    {getRemainingDays(task.deadline)}
+                  </small>
 
-                    <small
-                      style={{
-                        color: getDeadlineColor(task.deadline),
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {task.deadline
-                        ? getRemainingDays(task.deadline)
-                        : "未設定"}
-                    </small>
+                  {/* STATUS */}
+                  <div className="d-flex gap-2 mt-3">
 
-                  </div>
-                  
-                  {/* Badge */}
-                  <div>
-                    <span className="badge bg-primary mt-3">
+                    <span className="badge bg-primary">
                       Task
                     </span>
+
+                    <span className={`badge ${
+                      task.status === "done"
+                        ? "bg-success"
+                        : task.status === "doing"
+                        ? "bg-warning text-dark"
+                        : "bg-secondary"
+                    }`}>
+                      {task.status === "done"
+                        ? "完了"
+                        : task.status === "doing"
+                        ? "進行中"
+                        : "未着手"}
+                    </span>
+
                   </div>
 
                 </div>
-
               </div>
 
             </div>
-
           ))}
 
         </div>
