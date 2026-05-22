@@ -27,23 +27,24 @@ class TaskController extends Controller
     // ======================
     // 新規作成
     // ======================
-    public function store(Request $request)
-    {
-        $request->validate([
-            'title' => 'required|max:255',
-            'description' => 'required',
-            'deadline' => 'nullable|date_format:Y-m-d\TH:i',
-        ]);
+public function store(Request $request)
+{
+    // dd($request->all());
+    $request->validate([
+        'title' => 'required|max:255',
+        'description' => 'required',
+        'deadline' => 'nullable|date',
+    ]);
 
-        $task = Task::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'deadline' => $request->deadline,
-            'user_id' => auth()->id(),
-        ]);
+    $task = Task::create([
+        'title' => $request->title,
+        'description' => $request->description,
+        'deadline' => $request->deadline,
+        'user_id' => auth()->id(),
+    ]);
 
-        return response()->json($task, 201);
-    }
+    return response()->json($task, 201);
+}
 
     // ======================
     // 編集画面

@@ -66,9 +66,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // 作成
     Route::post('/tasks', function (Request $request) {
+
         return Task::create([
             'title' => $request->title,
             'description' => $request->description,
+            'deadline' => $request->deadline, // ← これ追加
             'completed' => false,
             'user_id' => $request->user()->id,
         ]);
@@ -84,6 +86,7 @@ Route::middleware('auth:sanctum')->group(function () {
         $task->update([
             'title' => $request->title,
             'description' => $request->description,
+'deadline' => $request->deadline, 
         ]);
 
         return $task;

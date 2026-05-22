@@ -1,126 +1,7 @@
-// import { useState } from "react";
-// import axios from "axios";
-// import { useNavigate, Link } from "react-router-dom";
-
-// const Ce = () => {
-//   const navigate = useNavigate();
-
-//   const [name, setName] = useState("");
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-//   const [deadline, setDeadline] = useState(""); // ⭐追加
-//   const [message, setMessage] = useState("");
-
-//   const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-
-//     try {
-//       await axios.post("http://localhost:8000/api/users", {
-//         name,
-//         email,
-//         password,
-//         deadline, // ⭐追加（※usersテーブルに無ければ不要）
-//       });
-
-//       setMessage("登録成功！");
-
-//       setTimeout(() => {
-//         navigate("/");
-//       }, 1000);
-//     } catch (error) {
-//       setMessage("登録失敗");
-//     }
-//   };
-
-//   return (
-//     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
-
-//       <div
-//         className="card shadow-sm p-5"
-//         style={{
-//           width: "380px",
-//           borderRadius: "12px",
-//           fontFamily: "Roboto, Arial, sans-serif",
-//         }}
-//       >
-
-//         {/* ヘッダー（Google風） */}
-//         <div className="text-center mb-4">
-//           <h4 className="fw-normal">Create account</h4>
-//           <p className="text-muted" style={{ fontSize: "14px" }}>
-//             to continue to YourApp
-//           </p>
-//         </div>
-
-//         <form onSubmit={handleSubmit}>
-
-//           {/* 名前 */}
-//           <input
-//             className="form-control form-control-lg mb-3"
-//             placeholder="Name"
-//             value={name}
-//             onChange={(e) => setName(e.target.value)}
-//           />
-
-//           {/* メール */}
-//           <input
-//             className="form-control form-control-lg mb-3"
-//             placeholder="Email or phone"
-//             value={email}
-//             onChange={(e) => setEmail(e.target.value)}
-//           />
-
-//           {/* パスワード */}
-//           <input
-//             type="password"
-//             className="form-control form-control-lg mb-3"
-//             placeholder="Password"
-//             value={password}
-//             onChange={(e) => setPassword(e.target.value)}
-//           />
-
-//           {/* ⭐期限追加（UI崩さない） */}
-//           <input
-//             type="date"
-//             className="form-control form-control-lg mb-3"
-//             value={deadline}
-//             onChange={(e) => setDeadline(e.target.value)}
-//           />
-
-//           {/* メッセージ */}
-//           {message && (
-//             <div className="alert alert-info py-2 mt-2">
-//               {message}
-//             </div>
-//           )}
-
-//           {/* フッター */}
-//           <div className="d-flex justify-content-between align-items-center mt-4">
-
-//             <Link to="/" className="text-primary" style={{ fontSize: "14px" }}>
-//               Sign in instead
-//             </Link>
-
-//             <button className="btn btn-primary px-4">
-//               Next
-//             </button>
-
-//           </div>
-
-//         </form>
-
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Ce;
-
-
-
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const Ce = () => {
   const navigate = useNavigate();
@@ -152,77 +33,149 @@ const Ce = () => {
   };
 
   return (
-    <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
-
+    <div
+      className="d-flex justify-content-center align-items-center vh-100"
+      style={{
+        backgroundColor: "#f5f7fb",
+      }}
+    >
       <div
-        className="card shadow-sm p-5"
+        className="card border-0"
         style={{
-          width: "380px",
-          borderRadius: "12px",
-          fontFamily: "Roboto, Arial, sans-serif",
+          width: "430px",
+          borderRadius: "20px",
+          boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+          overflow: "hidden",
         }}
       >
 
-        {/* ヘッダー（Google風） */}
-        <div className="text-center mb-4">
+        {/* Header */}
+        <div
+          className="text-center py-4"
+          style={{
+            backgroundColor: "#1f2937",
+            color: "white",
+          }}
+        >
+          <h3 className="fw-bold m-0">
+            Create Account
+          </h3>
 
-          <h4 className="fw-normal">Create account</h4>
-
-          <p className="text-muted" style={{ fontSize: "14px" }}>
-            to continue to YourApp
+          <p
+            className="m-0 mt-2"
+            style={{
+              color: "#d1d5db",
+              fontSize: "14px",
+            }}
+          >
+            Join YourApp today
           </p>
-
         </div>
 
-        <form onSubmit={handleSubmit}>
+        {/* Body */}
+        <div className="card-body p-5">
 
-          {/* 名前 */}
-          <input
-            className="form-control form-control-lg mb-3"
-            placeholder="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+          <form onSubmit={handleSubmit}>
 
-          {/* メール */}
-          <input
-            className="form-control form-control-lg mb-3"
-            placeholder="Email or phone"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+            {/* Name */}
+            <div className="mb-3">
 
-          {/* パスワード */}
-          <input
-            type="password"
-            className="form-control form-control-lg mb-2"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+              <label className="form-label fw-semibold">
+                Name
+              </label>
 
-          {/* メッセージ */}
-          {message && (
-            <div className="alert alert-info py-2 mt-2">
-              {message}
+              <input
+                className="form-control form-control-lg"
+                placeholder="Enter your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                style={{
+                  borderRadius: "12px",
+                }}
+              />
+
             </div>
-          )}
 
-          {/* フッター */}
-          <div className="d-flex justify-content-between align-items-center mt-4">
+            {/* Email */}
+            <div className="mb-3">
 
-            <Link to="/" className="text-primary" style={{ fontSize: "14px" }}>
-              Sign in instead
-            </Link>
+              <label className="form-label fw-semibold">
+                Email
+              </label>
 
-            <button className="btn btn-primary px-4">
-              Next
-            </button>
+              <input
+                className="form-control form-control-lg"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={{
+                  borderRadius: "12px",
+                }}
+              />
 
-          </div>
+            </div>
 
-        </form>
+            {/* Password */}
+            <div className="mb-2">
 
+              <label className="form-label fw-semibold">
+                Password
+              </label>
+
+              <input
+                type="password"
+                className="form-control form-control-lg"
+                placeholder="Create password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{
+                  borderRadius: "12px",
+                }}
+              />
+
+            </div>
+
+            {/* Message */}
+            {message && (
+              <div
+                className={`alert mt-3 ${
+                  message === "登録成功！"
+                    ? "alert-success"
+                    : "alert-danger"
+                }`}
+              >
+                {message}
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="d-flex justify-content-between align-items-center mt-4">
+
+              <Link
+                to="/"
+                style={{
+                  textDecoration: "none",
+                  fontWeight: 500,
+                }}
+              >
+                Sign in instead
+              </Link>
+
+              <button
+                className="btn btn-success px-4 py-2"
+                style={{
+                  borderRadius: "10px",
+                  fontWeight: "bold",
+                }}
+              >
+                Create
+              </button>
+
+            </div>
+
+          </form>
+
+        </div>
       </div>
     </div>
   );

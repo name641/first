@@ -32,70 +32,121 @@ const Login = () => {
   };
 
   return (
-    <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
-
+    <div
+      className="d-flex justify-content-center align-items-center vh-100"
+      style={{
+        backgroundColor: "#f5f7fb",
+      }}
+    >
       <div
-        className="card shadow-sm p-5"
+        className="card border-0"
         style={{
-          width: "380px",
-          borderRadius: "12px",
-          fontFamily: "Roboto, Arial, sans-serif",
+          width: "420px",
+          borderRadius: "20px",
+          boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+          overflow: "hidden",
         }}
       >
 
-        {/* Google風ヘッダー */}
-        <div className="text-center mb-4">
+        {/* Header */}
+        <div
+          className="text-center py-4"
+          style={{
+            backgroundColor: "#1f2937",
+            color: "white",
+          }}
+        >
+          <h3 className="fw-bold m-0">
+            MyApp
+          </h3>
 
-          <h5 className="fw-normal">Sign in</h5>
-
-          <p className="text-muted" style={{ fontSize: "14px" }}>
-            to continue to YourApp
+          <p
+            className="m-0 mt-2"
+            style={{
+              color: "#d1d5db",
+              fontSize: "14px",
+            }}
+          >
+            Sign in to continue
           </p>
-
         </div>
 
-        <form onSubmit={handleLogin}>
+        {/* Body */}
+        <div className="card-body p-5">
 
-          {/* Email */}
-          <input
-            type="email"
-            className="form-control form-control-lg mb-3"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <form onSubmit={handleLogin}>
 
-          {/* Password */}
-          <input
-            type="password"
-            className="form-control form-control-lg mb-2"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+            {/* Email */}
+            <div className="mb-4">
+              <label className="form-label fw-semibold">
+                Email
+              </label>
 
-          {/* Error */}
-          {error && (
-            <div className="alert alert-danger py-2">
-              {error}
+              <input
+                type="email"
+                className="form-control form-control-lg"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={{
+                  borderRadius: "12px",
+                }}
+              />
             </div>
-          )}
 
-          {/* Footer buttons */}
-          <div className="d-flex justify-content-between align-items-center mt-3">
+            {/* Password */}
+            <div className="mb-3">
+              <label className="form-label fw-semibold">
+                Password
+              </label>
 
-            <Link to="/create" className="text-primary" style={{ fontSize: "14px" }}>
-              Create account
-            </Link>
+              <input
+                type="password"
+                className="form-control form-control-lg"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{
+                  borderRadius: "12px",
+                }}
+              />
+            </div>
 
-            <button className="btn btn-primary px-4">
-              Next
-            </button>
+            {/* Error */}
+            {error && (
+              <div className="alert alert-danger">
+                {error}
+              </div>
+            )}
 
-          </div>
+            {/* Buttons */}
+            <div className="d-flex justify-content-between align-items-center mt-4">
 
-        </form>
+              <Link
+                to="/create"
+                style={{
+                  textDecoration: "none",
+                  fontWeight: 500,
+                }}
+              >
+                Create account
+              </Link>
 
+              <button
+                className="btn btn-success px-4 py-2"
+                style={{
+                  borderRadius: "10px",
+                  fontWeight: "bold",
+                }}
+              >
+                Login
+              </button>
+
+            </div>
+
+          </form>
+
+        </div>
       </div>
     </div>
   );
