@@ -3,19 +3,26 @@
 // import axios from "axios";
 // import "bootstrap/dist/css/bootstrap.min.css";
 
+// const API_URL = import.meta.env.VITE_API_URL;
+
 // const Login = () => {
 //   const navigate = useNavigate();
 
 //   const [email, setEmail] = useState("");
 //   const [password, setPassword] = useState("");
 //   const [error, setError] = useState("");
+//   const [loading, setLoading] = useState(false);
 
 //   const handleLogin = async (e: React.FormEvent) => {
 //     e.preventDefault();
 //     setError("");
 
+//     if (loading) return;
+
+//     setLoading(true);
+
 //     try {
-//       const response = await axios.post("http://localhost:8000/api/login", {
+//       const response = await axios.post(`${API_URL}/api/login`, {
 //         email,
 //         password,
 //       });
@@ -28,15 +35,15 @@
 //       }
 //     } catch (err) {
 //       setError("ユーザーアカウントまたはパスワードが間違っています");
+//     } finally {
+//       setLoading(false);
 //     }
 //   };
 
 //   return (
 //     <div
 //       className="d-flex justify-content-center align-items-center vh-100"
-//       style={{
-//         backgroundColor: "#f5f7fb",
-//       }}
+//       style={{ backgroundColor: "#f5f7fb" }}
 //     >
 //       <div
 //         className="card border-0"
@@ -47,105 +54,67 @@
 //           overflow: "hidden",
 //         }}
 //       >
-
 //         {/* Header */}
 //         <div
 //           className="text-center py-4"
-//           style={{
-//             backgroundColor: "#1f2937",
-//             color: "white",
-//           }}
+//           style={{ backgroundColor: "#1f2937", color: "white" }}
 //         >
-//           <h3 className="fw-bold m-0">
-//             MyApp
-//           </h3>
-
-//           <p
-//             className="m-0 mt-2"
-//             style={{
-//               color: "#d1d5db",
-//               fontSize: "14px",
-//             }}
-//           >
+//           <h3 className="fw-bold m-0">MyApp</h3>
+//           <p className="m-0 mt-2" style={{ color: "#d1d5db", fontSize: "14px" }}>
 //             Sign in to continue
 //           </p>
 //         </div>
 
 //         {/* Body */}
 //         <div className="card-body p-5">
-
 //           <form onSubmit={handleLogin}>
-
 //             {/* Email */}
 //             <div className="mb-4">
-//               <label className="form-label fw-semibold">
-//                 Email
-//               </label>
-
+//               <label className="form-label fw-semibold">Email</label>
 //               <input
 //                 type="email"
 //                 className="form-control form-control-lg"
 //                 placeholder="Enter your email"
 //                 value={email}
 //                 onChange={(e) => setEmail(e.target.value)}
-//                 style={{
-//                   borderRadius: "12px",
-//                 }}
+//                 style={{ borderRadius: "12px" }}
 //               />
 //             </div>
 
 //             {/* Password */}
 //             <div className="mb-3">
-//               <label className="form-label fw-semibold">
-//                 Password
-//               </label>
-
+//               <label className="form-label fw-semibold">Password</label>
 //               <input
 //                 type="password"
 //                 className="form-control form-control-lg"
 //                 placeholder="Enter your password"
 //                 value={password}
 //                 onChange={(e) => setPassword(e.target.value)}
-//                 style={{
-//                   borderRadius: "12px",
-//                 }}
+//                 style={{ borderRadius: "12px" }}
 //               />
 //             </div>
 
 //             {/* Error */}
-//             {error && (
-//               <div className="alert alert-danger">
-//                 {error}
-//               </div>
-//             )}
+//             {error && <div className="alert alert-danger">{error}</div>}
 
 //             {/* Buttons */}
 //             <div className="d-flex justify-content-between align-items-center mt-4">
-
 //               <Link
 //                 to="/create"
-//                 style={{
-//                   textDecoration: "none",
-//                   fontWeight: 500,
-//                 }}
+//                 style={{ textDecoration: "none", fontWeight: 500 }}
 //               >
 //                 Create account
 //               </Link>
 
 //               <button
 //                 className="btn btn-success px-4 py-2"
-//                 style={{
-//                   borderRadius: "10px",
-//                   fontWeight: "bold",
-//                 }}
+//                 style={{ borderRadius: "10px", fontWeight: "bold" }}
+//                 disabled={loading}
 //               >
-//                 Login
+//                 {loading ? "Logging in..." : "Login"}
 //               </button>
-
 //             </div>
-
 //           </form>
-
 //         </div>
 //       </div>
 //     </div>

@@ -61,6 +61,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // 作成
     Route::post('/tasks', [TaskController::class, 'store']);
 
+    // ★追加（並び替え保存）
+    Route::put('/tasks/reorder', [TaskController::class, 'reorder']);
+
     // 更新（PUT/PATCHどっちでもOK）
     Route::put('/tasks/{task}', [TaskController::class, 'update']);
     Route::patch('/tasks/{task}', [TaskController::class, 'update']);

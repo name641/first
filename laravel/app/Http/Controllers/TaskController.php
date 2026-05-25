@@ -10,6 +10,7 @@ class TaskController extends Controller
     // ======================
     // 一覧取得
     // ======================
+
     public function index(Request $request)
 {
     $query = Task::where('user_id', auth()->id());
@@ -18,25 +19,11 @@ class TaskController extends Controller
     if ($request->has('status') && $request->status !== 'all') {
         $query->where('status', $request->status);
     }
-
-    return $query->latest()->get();
+return $query
+    ->orderBy('status')
+    ->orderBy('order')
+    ->get();
 }
-    // public function index(Request $request)
-    // {
-    //     $query = Task::where('user_id', auth()->id());
-
-    //     // ■ ステータスフィルター（将来用）
-    //     if ($request->has('status')) {
-    //         $query->where('status', $request->status);
-    //     }
-
-    //     // ■ 期限切れフィルター（将来用）
-    //     if ($request->has('overdue')) {
-    //         $query->where('deadline', '<', now());
-    //     }
-
-    //     return $query->latest()->get();
-    // }
     // ======================
     // create view
     // （APIだけなら不要）
@@ -88,6 +75,7 @@ class TaskController extends Controller
     // ======================
     // 更新
     // ======================
+
     public function update(Request $request, Task $task)
     {
         if (auth()->id() !== $task->user_id) {
@@ -138,4 +126,26 @@ class TaskController extends Controller
 
         return response()->json($task);
     }
+    public function reorder(Request $request)
+{
+    foreach ($request->all() as $taskData) {
+
+        Task::where(
+            'id',
+            $taskData['id']
+        )
+        ->where(
+            'user_id',
+            auth()->id()
+        )
+        ->update([
+            'status' => $taskData['status'],
+            'order' => $taskData['order']
+        ]);
+    }
+
+    return response()->json([
+        'success' => true
+    ]);
+}
 }

@@ -1,7 +1,28 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../css/FunctionList.css";
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+} from "@dnd-kit/core";
+
+import type { DragEndEvent } from "@dnd-kit/core";
+
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+
+import { CSS } from "@dnd-kit/utilities";
 
 type Task = {
   id: number;
@@ -11,147 +32,457 @@ type Task = {
   status?: "todo" | "doing" | "done";
 };
 
+type User = {
+  id: number;
+  name: string;
+};
+
 export default function Page() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [deadlineFilter, setDeadlineFilter] = useState("all"); // ★変更
+  const [deadlineFilter, setDeadlineFilter] =
+    useState("all");
+
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] =
+    useState<User | null>(null);
 
   const navigate = useNavigate();
 
   // ======================
+  // DnD
+  // ======================
+
+  const sensors = useSensors(
+    useSensor(PointerSensor)
+  );
+
+  // ======================
   // tasks取得
   // ======================
-  useEffect(() => {
-    const token = localStorage.getItem("token");
 
-    fetch(`http://localhost:8000/api/tasks`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("API error");
-        return res.json();
-      })
-      .then((data) => setTasks(data))
-      .catch((err) => console.error(err));
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const token =
+          localStorage.getItem("token");
+
+        const res = await fetch(
+          "http://localhost:8000/api/tasks",
+          {
+            headers: {
+              "Content-Type":
+                "application/json",
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await res.json();
+
+        setTasks(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchTasks();
   }, []);
 
   // ======================
   // user取得
   // ======================
-  useEffect(() => {
-    const token = localStorage.getItem("token");
 
-    fetch("http://localhost:8000/api/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setUser(data))
-      .catch((err) => console.error(err));
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token =
+          localStorage.getItem("token");
+
+        const res = await fetch(
+          "http://localhost:8000/api/me",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await res.json();
+
+        setUser(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchUser();
   }, []);
 
   // ======================
-  // search + deadline filter
+  // filter
   // ======================
-  const filteredTasks = tasks.filter((task) => {
-    const matchSearch =
-      task.title.toLowerCase().includes(search.toLowerCase()) ||
-      task.description.toLowerCase().includes(search.toLowerCase());
 
-    if (!matchSearch) return false;
+  const filteredTasks = tasks.filter(
+    (task) => {
+      const matchSearch =
+        task.title
+          .toLowerCase()
+          .includes(search.toLowerCase()) ||
+        task.description
+          .toLowerCase()
+          .includes(search.toLowerCase());
 
-    if (deadlineFilter === "all") return true;
+      if (!matchSearch)
+        return false;
 
-    if (!task.deadline) return false;
+      if (deadlineFilter === "all")
+        return true;
 
-    const today = new Date();
-    const d = new Date(task.deadline);
+      if (!task.deadline)
+        return false;
 
-    today.setHours(0, 0, 0, 0);
-    d.setHours(0, 0, 0, 0);
+      const today =
+        new Date();
 
-    const diff = Math.ceil(
-      (d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      const d = new Date(
+        task.deadline
+      );
+
+      today.setHours(
+        0,
+        0,
+        0,
+        0
+      );
+
+      d.setHours(
+        0,
+        0,
+        0,
+        0
+      );
+
+      const diff =
+        Math.ceil(
+          (d.getTime() -
+            today.getTime()) /
+            (1000 *
+              60 *
+              60 *
+              24)
+        );
+
+      if (
+        deadlineFilter ===
+        "overdue"
+      )
+        return diff < 0;
+
+      if (
+        deadlineFilter ===
+        "today"
+      )
+        return diff === 0;
+
+      if (
+        deadlineFilter ===
+        "future"
+      )
+        return diff > 0;
+
+      return true;
+    }
+  );
+
+  const todoTasks =
+    filteredTasks.filter(
+      (t) =>
+        t.status === "todo"
     );
 
-    if (deadlineFilter === "overdue") return diff < 0;
-    if (deadlineFilter === "today") return diff === 0;
-    if (deadlineFilter === "future") return diff > 0;
+  const doingTasks =
+    filteredTasks.filter(
+      (t) =>
+        t.status === "doing"
+    );
 
-    return true;
-  });
-
-  // ======================
-  // statusで分割（Trello）
-  // ======================
-  const todoTasks = filteredTasks.filter((t) => t.status === "todo");
-  const doingTasks = filteredTasks.filter((t) => t.status === "doing");
-  const doneTasks = filteredTasks.filter((t) => t.status === "done");
+  const doneTasks =
+    filteredTasks.filter(
+      (t) =>
+        t.status === "done"
+    );
 
   // ======================
-  // utils
+  // Utils
   // ======================
-  const getDeadlineColor = (deadline?: string | null) => {
-    if (!deadline) return "#6c757d";
 
-    const today = new Date();
-    const d = new Date(deadline);
+  const getDeadlineColor = (
+    deadline?: string | null
+  ) => {
+    if (!deadline)
+      return "#6c757d";
 
-    today.setHours(0, 0, 0, 0);
-    d.setHours(0, 0, 0, 0);
+    const today =
+      new Date();
 
-    if (d < today) return "#dc3545";
-    if (d.getTime() === today.getTime()) return "#ffc107";
+    const d = new Date(
+      deadline
+    );
+
+    today.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+    d.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+    if (d < today)
+      return "#dc3545";
+
+    if (
+      d.getTime() ===
+      today.getTime()
+    )
+      return "#ffc107";
+
     return "#198754";
   };
 
-  const getRemainingDays = (deadline?: string | null) => {
-    if (!deadline) return null;
+  const getRemainingDays = (
+    deadline?: string | null
+  ) => {
+    if (!deadline)
+      return null;
 
-    const today = new Date();
-    const d = new Date(deadline);
+    const today =
+      new Date();
 
-    today.setHours(0, 0, 0, 0);
-    d.setHours(0, 0, 0, 0);
-
-    const diff = Math.ceil(
-      (d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    const d = new Date(
+      deadline
     );
 
-    if (diff < 0) return "期限切れ";
-    if (diff === 0) return "今日";
+    today.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+    d.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+    const diff =
+      Math.ceil(
+        (d.getTime() -
+          today.getTime()) /
+          (1000 *
+            60 *
+            60 *
+            24)
+      );
+
+    if (diff < 0)
+      return "期限切れ";
+
+    if (diff === 0)
+      return "今日";
+
     return `あと${diff}日`;
   };
 
-  const goCreateTask = () => navigate("/taskscreate");
+  // ======================
+  // Drag
+  // ======================
+const handleDragEnd = async (
+  event: DragEndEvent
+) => {
+  const { active, over } = event;
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  };
+  if (!over) return;
+
+  const activeId = Number(active.id);
+  const overId = over.id;
+
+  const activeTask = tasks.find(
+    (t) => t.id === activeId
+  );
+
+  if (!activeTask) return;
+
+  let newStatus = activeTask.status;
+
+  // status取得
+  if (
+    overId === "todo" ||
+    overId === "doing" ||
+    overId === "done"
+  ) {
+    newStatus =
+      overId as Task["status"];
+  } else {
+    const overTask = tasks.find(
+      (t) => t.id === Number(overId)
+    );
+
+    if (overTask) {
+      newStatus = overTask.status;
+    }
+  }
+
+  // status更新
+  let updatedTasks = tasks.map(
+    (task) =>
+      task.id === activeId
+        ? {
+            ...task,
+            status: newStatus,
+          }
+        : task
+  );
+
+  const oldIndex =
+    updatedTasks.findIndex(
+      (t) => t.id === activeId
+    );
+
+  let newIndex = oldIndex;
+
+  if (
+    overId !== "todo" &&
+    overId !== "doing" &&
+    overId !== "done"
+  ) {
+    newIndex =
+      updatedTasks.findIndex(
+        (t) =>
+          t.id === Number(overId)
+      );
+  }
+
+  updatedTasks = arrayMove(
+    updatedTasks,
+    oldIndex,
+    newIndex
+  );
+
+  setTasks(updatedTasks);
+
+  // ↓ DB保存処理追加
+  try {
+    const token =
+      localStorage.getItem("token");
+
+const payload =
+updatedTasks.map(
+(task)=>({
+    id: task.id,
+    status: task.status,
+    order:
+      updatedTasks
+        .filter(
+          t =>
+          t.status === task.status
+        )
+        .findIndex(
+          t =>
+          t.id === task.id
+        )
+}))
+await fetch(
+  "http://localhost:8000/api/tasks/reorder",
+  {
+    method: "PUT", // ← POSTから変更
+    headers: {
+      "Content-Type":
+        "application/json",
+      Authorization:
+        `Bearer ${token}`,
+    },
+    body: JSON.stringify(
+      payload
+    ),
+  }
+);
+  } catch (err) {
+    console.error(
+      "保存失敗",
+      err
+    );
+  }
+};
+  const goCreateTask =
+    () =>
+      navigate(
+        "/taskscreate"
+      );
+
+  const handleLogout =
+    () => {
+      localStorage.removeItem(
+        "token"
+      );
+
+      navigate("/");
+    };
 
   // ======================
   // Card
   // ======================
-  const TaskCard = ({ task }: { task: Task }) => (
+
+const TaskCard = ({
+  task,
+}: {
+  task: Task;
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task.id,
+  });
+
+  return (
     <div
-      className="p-3 bg-white rounded shadow-sm mb-3"
+      ref={setNodeRef}
       style={{
-        borderLeft: `5px solid ${getDeadlineColor(task.deadline)}`,
+        transform:
+          CSS.Transform.toString(
+            transform
+          ),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+        borderLeft: `5px solid ${getDeadlineColor(
+          task.deadline
+        )}`,
         cursor: "pointer",
       }}
-      onClick={() => navigate(`/taskedit/${task.id}`)}
+      className="p-3 bg-white rounded shadow-sm mb-3"
+      onClick={() =>
+        navigate(`/taskedit/${task.id}`)
+      }
     >
       <div className="d-flex justify-content-between">
-        <h6 className="fw-bold">{task.title}</h6>
+
+        <h6 className="fw-bold">
+          {task.title}
+        </h6>
 
         <span
           className={`badge ${
@@ -168,158 +499,336 @@ export default function Page() {
             ? "進行中"
             : "未着手"}
         </span>
+
       </div>
 
-      <p className="text-muted small mt-2">{task.description}</p>
+      <p className="text-muted small mt-2">
+        {task.description}
+      </p>
 
       <div className="d-flex justify-content-between small">
-        <span>📅 {task.deadline ?? "未設定"}</span>
-        <span style={{ color: getDeadlineColor(task.deadline), fontWeight: 600 }}>
-          {getRemainingDays(task.deadline)}
+
+        <span
+          style={{
+            color: getDeadlineColor(
+              task.deadline
+            ),
+            fontWeight: 600,
+          }}
+        >
+          {getRemainingDays(
+            task.deadline
+          )}
         </span>
+
+        {/* カレンダーの場所に移動 */}
+        <span
+          {...attributes}
+          {...listeners}
+          style={{
+            cursor: "grab",
+            fontSize: "18px",
+          }}
+        >
+          ⋮⋮
+        </span>
+
       </div>
     </div>
   );
-
+};
   // ======================
   // Column
   // ======================
+
   const Column = ({
     title,
     tasks,
     color,
+    status,
   }: {
     title: string;
     tasks: Task[];
     color: string;
-  }) => (
-    <div className="col-md-4">
-      <div
-        className="p-3 rounded"
-        style={{ background: "#f5f7fb", minHeight: "80vh" }}
-      >
-        <h5 className="mb-3 d-flex align-items-center gap-2">
-          <span
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              background: color,
-              display: "inline-block",
-            }}
-          />
-          {title} ({tasks.length})
-        </h5>
+    status:
+      | "todo"
+      | "doing"
+      | "done";
+  }) => {
+    const {
+      setNodeRef,
+      isOver,
+    } = useDroppable({
+      id: status,
+    });
 
-        {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
-        ))}
+    return (
+      <div className="col-md-4">
+        <div
+          ref={
+            setNodeRef
+          }
+          className="p-3 rounded"
+          style={{
+            background:
+              isOver
+                ? "#e9f2ff"
+                : "#f5f7fb",
+            minHeight:
+              "80vh",
+            transition:
+              "0.2s",
+          }}
+        >
+          <h5 className="mb-3 d-flex align-items-center gap-2">
+            <span
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius:
+                  "50%",
+                background:
+                  color,
+              }}
+            />
+            {title} (
+            {tasks.length})
+          </h5>
+
+          <SortableContext
+            items={tasks.map(
+              (t) =>
+                t.id
+            )}
+            strategy={
+              verticalListSortingStrategy
+            }
+          >
+            {tasks.map(
+              (
+                task
+              ) => (
+                <TaskCard
+                  key={
+                    task.id
+                  }
+                  task={
+                    task
+                  }
+                />
+              )
+            )}
+          </SortableContext>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <>
-      {/* ================= HEADER ================= */}
       <header className="d-flex justify-content-between align-items-center px-4 py-3 bg-dark text-white">
         <h4
           className="m-0"
-          onClick={() => navigate("/functionlist")}
-          style={{ cursor: "pointer" }}
+          style={{
+            cursor:
+              "pointer",
+          }}
+          onClick={() =>
+            navigate(
+              "/functionlist"
+            )
+          }
         >
           MyApp
         </h4>
 
         <div className="d-flex align-items-center gap-3">
-          <span className="small text-light">{user?.name}</span>
+          <span className="large text-light">
+            {
+              user?.name
+            }
+          </span>
 
-          <button className="btn btn-success btn-sm" onClick={goCreateTask}>
+          <button
+            className="btn btn-success btn-sm"
+            onClick={
+              goCreateTask
+            }
+          >
             + New Task
           </button>
 
           <button
             className="btn btn-outline-light btn-sm"
-            onClick={() => setOpen(true)}
+            onClick={() =>
+              setOpen(
+                true
+              )
+            }
           >
             ☰
           </button>
         </div>
       </header>
 
-      {/* ================= FILTER ================= */}
       <div className="d-flex gap-2 p-3 bg-white border-bottom">
+
         <input
           className="form-control"
           placeholder="タスクを検索..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) =>
+            setSearch(
+              e.target.value
+            )
+          }
         />
 
-        {/* ★ここが変更 */}
         <select
           className="form-select w-auto"
-          value={deadlineFilter}
-          onChange={(e) => setDeadlineFilter(e.target.value)}
+          value={
+            deadlineFilter
+          }
+          onChange={(e) =>
+            setDeadlineFilter(
+              e.target.value
+            )
+          }
         >
-          <option value="all">全て</option>
-          <option value="overdue">期限切れ</option>
-          <option value="today">今日</option>
-          <option value="future">今後のタスク</option>
+          <option value="all">
+            全て
+          </option>
+
+          <option value="overdue">
+            期限切れ
+          </option>
+
+          <option value="today">
+            今日
+          </option>
+
+          <option value="future">
+            今後のタスク
+          </option>
+
         </select>
+
       </div>
 
-      {/* ================= BOARD ================= */}
-      <div className="container-fluid py-4">
-        <div className="row g-3">
-          <Column title="TODO" tasks={todoTasks} color="#6c757d" />
-          <Column title="DOING" tasks={doingTasks} color="#ffc107" />
-          <Column title="DONE" tasks={doneTasks} color="#198754" />
+      <DndContext
+        sensors={
+          sensors
+        }
+        collisionDetection={
+          closestCenter
+        }
+        onDragEnd={
+          handleDragEnd
+        }
+      >
+        <div className="container-fluid py-4">
+          <div className="row g-3">
+
+            <Column
+              title="TODO"
+              tasks={
+                todoTasks
+              }
+              color="#6c757d"
+              status="todo"
+            />
+
+            <Column
+              title="DOING"
+              tasks={
+                doingTasks
+              }
+              color="#ffc107"
+              status="doing"
+            />
+
+            <Column
+              title="DONE"
+              tasks={
+                doneTasks
+              }
+              color="#198754"
+              status="done"
+            />
+
+          </div>
         </div>
-      </div>
+      </DndContext>
 
-      {/* ================= OFFCANVAS ================= */}
       <div
         className={`offcanvas offcanvas-end text-bg-dark ${
-          open ? "show" : ""
+          open
+            ? "show"
+            : ""
         }`}
         style={{
-          visibility: open ? "visible" : "hidden",
-          width: "260px",
+          visibility:
+            open
+              ? "visible"
+              : "hidden",
+          width:
+            "260px",
         }}
       >
         <div className="offcanvas-header">
-          <h5 className="offcanvas-title">Menu</h5>
+
+          <h5 className="offcanvas-title">
+            Menu
+          </h5>
+
           <button
             className="btn-close btn-close-white"
-            onClick={() => setOpen(false)}
+            onClick={() =>
+              setOpen(
+                false
+              )
+            }
           />
+
         </div>
 
         <div className="offcanvas-body">
+
           <div className="list-group list-group-flush">
-            <a
+
+            <button
               className="list-group-item list-group-item-action bg-dark text-white"
-              onClick={() => navigate("/profile")}
-              style={{ cursor: "pointer" }}
+              onClick={() =>
+                navigate(
+                  "/profile"
+                )
+              }
             >
               👤 Profile
-            </a>
+            </button>
 
-            <a
+            <button
               className="list-group-item list-group-item-action bg-dark text-danger"
-              onClick={handleLogout}
-              style={{ cursor: "pointer" }}
+              onClick={
+                handleLogout
+              }
             >
               🚪 Logout
-            </a>
+            </button>
+
           </div>
+
         </div>
       </div>
 
       {open && (
         <div
           className="offcanvas-backdrop fade show"
-          onClick={() => setOpen(false)}
+          onClick={() =>
+            setOpen(
+              false
+            )
+          }
         />
       )}
     </>

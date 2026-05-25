@@ -6,12 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Task extends Model
 {
-    protected $fillable = [
-        'title',
-        'description',
-        'completed',
-        'user_id',
-        'deadline',
-        'status',
-    ];
+protected $fillable = [
+   'title',
+   'description',
+   'deadline',
+   'status',
+   'order',
+   'user_id'
+];
 }
