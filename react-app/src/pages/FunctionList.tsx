@@ -37,6 +37,9 @@ type User = {
   name: string;
 };
 
+const API_URL =
+  import.meta.env.VITE_API_URL;
+
 export default function Page() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -68,7 +71,7 @@ export default function Page() {
           localStorage.getItem("token");
 
         const res = await fetch(
-          "http://localhost:8000/api/tasks",
+          `${API_URL}/tasks`,
           {
             headers: {
               "Content-Type":
@@ -101,7 +104,7 @@ export default function Page() {
           localStorage.getItem("token");
 
         const res = await fetch(
-          "http://localhost:8000/api/me",
+          `${API_URL}/me`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -168,10 +171,10 @@ export default function Page() {
         Math.ceil(
           (d.getTime() -
             today.getTime()) /
-            (1000 *
-              60 *
-              60 *
-              24)
+          (1000 *
+            60 *
+            60 *
+            24)
         );
 
       if (
@@ -288,10 +291,10 @@ export default function Page() {
       Math.ceil(
         (d.getTime() -
           today.getTime()) /
-          (1000 *
-            60 *
-            60 *
-            24)
+        (1000 *
+          60 *
+          60 *
+          24)
       );
 
     if (diff < 0)
@@ -306,123 +309,123 @@ export default function Page() {
   // ======================
   // Drag
   // ======================
-const handleDragEnd = async (
-  event: DragEndEvent
-) => {
-  const { active, over } = event;
+  const handleDragEnd = async (
+    event: DragEndEvent
+  ) => {
+    const { active, over } = event;
 
-  if (!over) return;
+    if (!over) return;
 
-  const activeId = Number(active.id);
-  const overId = over.id;
+    const activeId = Number(active.id);
+    const overId = over.id;
 
-  const activeTask = tasks.find(
-    (t) => t.id === activeId
-  );
-
-  if (!activeTask) return;
-
-  let newStatus = activeTask.status;
-
-  // status取得
-  if (
-    overId === "todo" ||
-    overId === "doing" ||
-    overId === "done"
-  ) {
-    newStatus =
-      overId as Task["status"];
-  } else {
-    const overTask = tasks.find(
-      (t) => t.id === Number(overId)
-    );
-
-    if (overTask) {
-      newStatus = overTask.status;
-    }
-  }
-
-  // status更新
-  let updatedTasks = tasks.map(
-    (task) =>
-      task.id === activeId
-        ? {
-            ...task,
-            status: newStatus,
-          }
-        : task
-  );
-
-  const oldIndex =
-    updatedTasks.findIndex(
+    const activeTask = tasks.find(
       (t) => t.id === activeId
     );
 
-  let newIndex = oldIndex;
+    if (!activeTask) return;
 
-  if (
-    overId !== "todo" &&
-    overId !== "doing" &&
-    overId !== "done"
-  ) {
-    newIndex =
-      updatedTasks.findIndex(
-        (t) =>
-          t.id === Number(overId)
+    let newStatus = activeTask.status;
+
+    // status取得
+    if (
+      overId === "todo" ||
+      overId === "doing" ||
+      overId === "done"
+    ) {
+      newStatus =
+        overId as Task["status"];
+    } else {
+      const overTask = tasks.find(
+        (t) => t.id === Number(overId)
       );
-  }
 
-  updatedTasks = arrayMove(
-    updatedTasks,
-    oldIndex,
-    newIndex
-  );
+      if (overTask) {
+        newStatus = overTask.status;
+      }
+    }
 
-  setTasks(updatedTasks);
-
-  // ↓ DB保存処理追加
-  try {
-    const token =
-      localStorage.getItem("token");
-
-const payload =
-updatedTasks.map(
-(task)=>({
-    id: task.id,
-    status: task.status,
-    order:
-      updatedTasks
-        .filter(
-          t =>
-          t.status === task.status
-        )
-        .findIndex(
-          t =>
-          t.id === task.id
-        )
-}))
-await fetch(
-  "http://localhost:8000/api/tasks/reorder",
-  {
-    method: "PUT", // ← POSTから変更
-    headers: {
-      "Content-Type":
-        "application/json",
-      Authorization:
-        `Bearer ${token}`,
-    },
-    body: JSON.stringify(
-      payload
-    ),
-  }
-);
-  } catch (err) {
-    console.error(
-      "保存失敗",
-      err
+    // status更新
+    let updatedTasks = tasks.map(
+      (task) =>
+        task.id === activeId
+          ? {
+            ...task,
+            status: newStatus,
+          }
+          : task
     );
-  }
-};
+
+    const oldIndex =
+      updatedTasks.findIndex(
+        (t) => t.id === activeId
+      );
+
+    let newIndex = oldIndex;
+
+    if (
+      overId !== "todo" &&
+      overId !== "doing" &&
+      overId !== "done"
+    ) {
+      newIndex =
+        updatedTasks.findIndex(
+          (t) =>
+            t.id === Number(overId)
+        );
+    }
+
+    updatedTasks = arrayMove(
+      updatedTasks,
+      oldIndex,
+      newIndex
+    );
+
+    setTasks(updatedTasks);
+
+    // ↓ DB保存処理追加
+    try {
+      const token =
+        localStorage.getItem("token");
+
+      const payload =
+        updatedTasks.map(
+          (task) => ({
+            id: task.id,
+            status: task.status,
+            order:
+              updatedTasks
+                .filter(
+                  t =>
+                    t.status === task.status
+                )
+                .findIndex(
+                  t =>
+                    t.id === task.id
+                )
+          }))
+      await fetch(
+        `${API_URL}/tasks/reorder`,
+        {
+          method: "PUT", // ← POSTから変更
+          headers: {
+            "Content-Type":
+              "application/json",
+            Authorization:
+              `Bearer ${token}`,
+          },
+          body: JSON.stringify(
+            payload
+          ),
+        }
+      );
+    } catch (err) {
+      console.error(
+        "保存失敗",
+        err
+      );
+    }
+  };
   const goCreateTask =
     () =>
       navigate(
@@ -442,101 +445,100 @@ await fetch(
   // Card
   // ======================
 
-const TaskCard = ({
-  task,
-}: {
-  task: Task;
-}) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: task.id,
-  });
+  const TaskCard = ({
+    task,
+  }: {
+    task: Task;
+  }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({
+      id: task.id,
+    });
 
-  return (
-    <div
-      ref={setNodeRef}
-      style={{
-        transform:
-          CSS.Transform.toString(
-            transform
-          ),
-        transition,
-        opacity: isDragging ? 0.5 : 1,
-        borderLeft: `5px solid ${getDeadlineColor(
-          task.deadline
-        )}`,
-        cursor: "pointer",
-      }}
-      className="p-3 bg-white rounded shadow-sm mb-3"
-      onClick={() =>
-        navigate(`/taskedit/${task.id}`)
-      }
-    >
-      <div className="d-flex justify-content-between">
+    return (
+      <div
+        ref={setNodeRef}
+        style={{
+          transform:
+            CSS.Transform.toString(
+              transform
+            ),
+          transition,
+          opacity: isDragging ? 0.5 : 1,
+          borderLeft: `5px solid ${getDeadlineColor(
+            task.deadline
+          )}`,
+          cursor: "pointer",
+        }}
+        className="p-3 bg-white rounded shadow-sm mb-3"
+        onClick={() =>
+          navigate(`/taskedit/${task.id}`)
+        }
+      >
+        <div className="d-flex justify-content-between">
 
-        <h6 className="fw-bold">
-          {task.title}
-        </h6>
+          <h6 className="fw-bold">
+            {task.title}
+          </h6>
 
-        <span
-          className={`badge ${
-            task.status === "done"
+          <span
+            className={`badge ${task.status === "done"
               ? "bg-success"
               : task.status === "doing"
-              ? "bg-warning text-dark"
-              : "bg-secondary"
-          }`}
-        >
-          {task.status === "done"
-            ? "完了"
-            : task.status === "doing"
-            ? "進行中"
-            : "未着手"}
-        </span>
+                ? "bg-warning text-dark"
+                : "bg-secondary"
+              }`}
+          >
+            {task.status === "done"
+              ? "完了"
+              : task.status === "doing"
+                ? "進行中"
+                : "未着手"}
+          </span>
 
-      </div>
+        </div>
 
-      <p className="text-muted small mt-2">
-        {task.description}
-      </p>
+        <p className="text-muted small mt-2">
+          {task.description}
+        </p>
 
-      <div className="d-flex justify-content-between small">
+        <div className="d-flex justify-content-between small">
 
-        <span
-          style={{
-            color: getDeadlineColor(
+          <span
+            style={{
+              color: getDeadlineColor(
+                task.deadline
+              ),
+              fontWeight: 600,
+            }}
+          >
+            {getRemainingDays(
               task.deadline
-            ),
-            fontWeight: 600,
-          }}
-        >
-          {getRemainingDays(
-            task.deadline
-          )}
-        </span>
+            )}
+          </span>
 
-        {/* カレンダーの場所に移動 */}
-        <span
-          {...attributes}
-          {...listeners}
-          style={{
-            cursor: "grab",
-            fontSize: "18px",
-          }}
-        >
-          ⋮⋮
-        </span>
+          {/* カレンダーの場所に移動 */}
+          <span
+            {...attributes}
+            {...listeners}
+            style={{
+              cursor: "grab",
+              fontSize: "18px",
+            }}
+          >
+            ⋮⋮
+          </span>
 
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
   // ======================
   // Column
   // ======================
@@ -551,9 +553,9 @@ const TaskCard = ({
     tasks: Task[];
     color: string;
     status:
-      | "todo"
-      | "doing"
-      | "done";
+    | "todo"
+    | "doing"
+    | "done";
   }) => {
     const {
       setNodeRef,
@@ -625,49 +627,56 @@ const TaskCard = ({
   };
 
   return (
-    <>
-      <header className="d-flex justify-content-between align-items-center px-4 py-3 bg-dark text-white">
-        <h4
-          className="m-0"
-          style={{
-            cursor:
-              "pointer",
-          }}
-          onClick={() =>
-            navigate(
-              "/functionlist"
-            )
-          }
-        >
-          MyApp
-        </h4>
+    <div
+      className="d-flex flex-column min-vh-100"
+    >
+      <header
+        className="navbar navbar-dark py-4"
+        style={{ backgroundColor: "#1f2937" }}
+      >
+        <div className="container-fluid px-3 d-flex justify-content-between align-items-center">
 
-        <div className="d-flex align-items-center gap-3">
-          <span className="large text-light">
-            {
-              user?.name
-            }
-          </span>
-
-          <button
-            className="btn btn-success btn-sm"
-            onClick={
-              goCreateTask
-            }
+          <a
+            className="navbar-brand fw-bold m-0 cat-logo"
+            style={{ cursor: "pointer" }}
+            onClick={() => navigate("/functionlist")}
           >
-            + New Task
-          </button>
+            MyApp
+          </a>
 
-          <button
-            className="btn btn-outline-light btn-sm"
-            onClick={() =>
-              setOpen(
-                true
-              )
-            }
-          >
-            ☰
-          </button>
+          <div className="d-flex align-items-center gap-3">
+
+            <div
+              className="d-flex align-items-center gap-2 px-2 py-1 rounded"
+              style={{
+                backgroundColor: "#374151",
+                cursor: "pointer"
+              }}
+              onClick={() => navigate("/profile")}
+            >
+              <i className="bi bi-person-circle" />
+              <span style={{ color: "white", fontSize: "18px" }}>
+                {user?.name}
+              </span>
+            </div>
+
+            <button
+              className="btn btn-success btn-sm "
+              onClick={
+                goCreateTask
+              }
+            >
+              + New Task
+            </button>
+
+            <button
+              className="navbar-toggler"
+              onClick={() => setOpen(true)}
+            >
+              <span className="navbar-toggler-icon" />
+            </button>
+
+          </div>
         </div>
       </header>
 
@@ -715,57 +724,75 @@ const TaskCard = ({
 
       </div>
 
-      <DndContext
-        sensors={
-          sensors
-        }
-        collisionDetection={
-          closestCenter
-        }
-        onDragEnd={
-          handleDragEnd
-        }
-      >
-        <div className="container-fluid py-4">
-          <div className="row g-3">
+      <div className="flex-grow-1">
 
-            <Column
-              title="TODO"
-              tasks={
-                todoTasks
-              }
-              color="#6c757d"
-              status="todo"
-            />
+        {tasks.length === 0 ? (
 
-            <Column
-              title="DOING"
-              tasks={
-                doingTasks
-              }
-              color="#ffc107"
-              status="doing"
-            />
+          <div
+            className="d-flex flex-column justify-content-center align-items-center"
+            style={{ minHeight: "60vh" }}
+          >
+            <h5>タスクがありません</h5>
 
-            <Column
-              title="DONE"
-              tasks={
-                doneTasks
-              }
-              color="#198754"
-              status="done"
-            />
+            <p className="text-muted">
+              「+ New Task」から追加してください
+            </p>
+
+            <button
+              className="btn btn-success"
+              onClick={goCreateTask}
+            >
+              + New Task
+            </button>
 
           </div>
-        </div>
-      </DndContext>
 
+        ) : (
+
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="container-fluid py-4">
+
+              <div className="row g-3">
+
+                <Column
+                  title="TODO"
+                  tasks={todoTasks}
+                  color="#6c757d"
+                  status="todo"
+                />
+
+                <Column
+                  title="DOING"
+                  tasks={doingTasks}
+                  color="#ffc107"
+                  status="doing"
+                />
+
+                <Column
+                  title="DONE"
+                  tasks={doneTasks}
+                  color="#198754"
+                  status="done"
+                />
+
+              </div>
+
+            </div>
+
+          </DndContext>
+
+        )}
+
+      </div>
       <div
-        className={`offcanvas offcanvas-end text-bg-dark ${
-          open
-            ? "show"
-            : ""
-        }`}
+        className={`offcanvas offcanvas-end text-bg-dark ${open
+          ? "show"
+          : ""
+          }`}
         style={{
           visibility:
             open
@@ -831,6 +858,20 @@ const TaskCard = ({
           }
         />
       )}
-    </>
+
+      <footer
+        className=" navbar-dark text-center py-3 border-top"
+        style={{
+          backgroundColor: "#1f2937",
+          color: "white"
+        }}
+      >
+        <div>Task Management App</div>
+
+        <small>
+          React + TypeScript + Laravel + MySQL
+        </small>
+      </footer>
+    </div>
   );
 }

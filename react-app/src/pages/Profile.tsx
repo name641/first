@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API_URL =
+  import.meta.env.VITE_API_URL;
+
 type User = {
   id: number;
   name: string;
@@ -20,7 +23,7 @@ export default function Profile() {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    fetch("http://localhost:8000/api/me", {
+    fetch(`${API_URL}/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -41,7 +44,7 @@ export default function Profile() {
   const handleUpdate = async () => {
     const token = localStorage.getItem("token");
 
-    await fetch("http://localhost:8000/api/profile", {
+    await fetch(`${API_URL}/profile`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -58,21 +61,21 @@ export default function Profile() {
   };
 
   // 🗑 delete
-    const handleDelete = async () => {
+  const handleDelete = async () => {
     if (!window.confirm("本当にアカウントを削除しますか？")) return;
 
     const token = localStorage.getItem("token");
 
-    await fetch("http://localhost:8000/api/profile", {
-        method: "DELETE",
-        headers: {
+    await fetch(`${API_URL}/profile`, {
+      method: "DELETE",
+      headers: {
         Authorization: `Bearer ${token}`,
-        },
+      },
     });
 
     localStorage.removeItem("token");
     navigate("/");
-    };
+  };
 
   //Logout
   const handleLogout = () => {
@@ -88,16 +91,23 @@ export default function Profile() {
         style={{ backgroundColor: "#1f2937" }}
       >
         <div className="container-fluid px-3 d-flex justify-content-between align-items-center">
-
-          <a className="navbar-brand fw-bold m-0" onClick={() => navigate("/tasks")}>
+          <a
+            className="navbar-brand fw-bold m-0"
+            style={{ cursor: "pointer" }}
+            onClick={() => navigate("/functionlist")}
+          >
             MyApp
           </a>
+
 
           <div className="d-flex align-items-center gap-3">
 
             <div
-              className="d-flex align-items-center gap-2 px-2 py-1 rounded"
-              style={{ backgroundColor: "#374151", cursor: "pointer" }}
+              className=" px-2 py-1 rounded"
+              style={{
+                backgroundColor: "#374151",
+                cursor: "pointer"
+              }}
               onClick={() => navigate("/profile")}
             >
               <i className="bi bi-person-circle" />
@@ -166,18 +176,18 @@ export default function Profile() {
         style={{ backgroundColor: "#f5f7fb", minHeight: "100vh" }}
       >
 
-            <div className="row justify-content-center">
-              <div className="col-12 col-md-6 col-lg-5">
+        <div className="row justify-content-center">
+          <div className="col-12 col-md-6 col-lg-5">
 
-                <div
-                  className="card border-0 p-3 mx-auto"
-                  style={{
-                    borderRadius: "16px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                    maxWidth: "500px",
-                    width: "100%",
-                  }}
-                >
+            <div
+              className="card border-0 p-3 mx-auto"
+              style={{
+                borderRadius: "16px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                maxWidth: "500px",
+                width: "100%",
+              }}
+            >
               <div className="text-center mb-3">
                 <i
                   className="bi bi-person-circle"
@@ -210,26 +220,26 @@ export default function Profile() {
 
               <div className="d-flex justify-content-between">
                 <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={() => navigate("/functionlist")}
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onClick={() => navigate("/functionlist")}
                 >
-                    Back
+                  Back
                 </button>
                 <div className="d-flex gap-2">
-                    <button
+                  <button
                     className="btn btn-danger"
                     onClick={handleDelete}
-                    >
+                  >
                     Delete Account
-                    </button>
+                  </button>
 
-                    <button
+                  <button
                     className="btn btn-primary px-4"
                     onClick={handleUpdate}
-                    >
+                  >
                     Update
-                    </button>
+                  </button>
                 </div>
               </div>
 

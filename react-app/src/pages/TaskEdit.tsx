@@ -2,6 +2,8 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+const API_URL =
+  import.meta.env.VITE_API_URL;
 type User = {
   name: string;
 };
@@ -26,14 +28,14 @@ const TaskEdit = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    fetch("http://localhost:8000/api/me", {
+    fetch(`${API_URL}/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     })
       .then((res) => res.json())
       .then((data) => setUser(data))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // ======================
@@ -42,7 +44,7 @@ const TaskEdit = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    fetch(`http://localhost:8000/api/tasks/${id}`, {
+    fetch(`${API_URL}/tasks/${id}`, {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
@@ -70,7 +72,7 @@ const TaskEdit = () => {
 
     const token = localStorage.getItem("token");
 
-    const res = await fetch(`http://localhost:8000/api/tasks/${id}`, {
+    const res = await fetch(`${API_URL}/tasks/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -99,7 +101,7 @@ const TaskEdit = () => {
 
     const token = localStorage.getItem("token");
 
-    const res = await fetch(`http://localhost:8000/api/tasks/${id}`, {
+    const res = await fetch(`${API_URL}/tasks/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -134,20 +136,23 @@ const TaskEdit = () => {
         style={{ backgroundColor: "#1f2937" }}
       >
         <div className="container-fluid px-3 d-flex justify-content-between align-items-center">
-
           <a
             className="navbar-brand fw-bold m-0"
-            onClick={() => navigate("/functionlist")}
             style={{ cursor: "pointer" }}
+            onClick={() => navigate("/functionlist")}
           >
             MyApp
           </a>
 
+
           <div className="d-flex align-items-center gap-3">
 
             <div
-              className="d-flex align-items-center gap-2 px-2 py-1 rounded"
-              style={{ backgroundColor: "#374151", cursor: "pointer" }}
+              className=" px-2 py-1 rounded"
+              style={{
+                backgroundColor: "#374151",
+                cursor: "pointer"
+              }}
               onClick={() => navigate("/profile")}
             >
               <i className="bi bi-person-circle" />

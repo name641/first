@@ -2,6 +2,8 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API_URL =
+  import.meta.env.VITE_API_URL;
 type User = {
   name: string;
 };
@@ -32,7 +34,7 @@ const TasksCreate = () => {
       return;
     }
 
-    fetch("http://localhost:8000/api/me", {
+    fetch(`${API_URL}/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
@@ -112,7 +114,7 @@ const TasksCreate = () => {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:8000/api/tasks", {
+      const response = await fetch(`${API_URL}/tasks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -147,16 +149,20 @@ const TasksCreate = () => {
         <div className="container-fluid px-3 d-flex justify-content-between align-items-center">
           <a
             className="navbar-brand fw-bold m-0"
-            onClick={() => navigate("/functionlist")}
             style={{ cursor: "pointer" }}
+            onClick={() => navigate("/functionlist")}
           >
             MyApp
           </a>
 
+
           <div className="d-flex align-items-center gap-3">
             <div
-              className="d-flex align-items-center gap-2 px-2 py-1 rounded"
-              style={{ backgroundColor: "#374151", cursor: "pointer" }}
+              className=" px-2 py-1 rounded"
+              style={{
+                backgroundColor: "#374151",
+                cursor: "pointer"
+              }}
               onClick={() => navigate("/profile")}
             >
               <i className="bi bi-person-circle" />
@@ -176,11 +182,10 @@ const TasksCreate = () => {
       </header>
 
       {/* 以下省略（元のUIそのままでOK） */}
-       {/* ================= OFFCANVAS ================= */}
-     <div
-        className={`offcanvas offcanvas-end text-bg-dark ${
-          open ? "show" : ""
-        }`}
+      {/* ================= OFFCANVAS ================= */}
+      <div
+        className={`offcanvas offcanvas-end text-bg-dark ${open ? "show" : ""
+          }`}
         style={{
           visibility: open ? "visible" : "hidden",
           width: "260px",
@@ -304,9 +309,9 @@ const TasksCreate = () => {
                     onChange={(e) =>
                       setStatus(
                         e.target.value as
-                          | "todo"
-                          | "doing"
-                          | "done"
+                        | "todo"
+                        | "doing"
+                        | "done"
                       )
                     }
                   >

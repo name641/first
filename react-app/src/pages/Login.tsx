@@ -128,7 +128,9 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
-
+const API_URL =
+  import.meta.env.VITE_API_URL;
+console.log(API_URL);
 const Login = () => {
   const navigate = useNavigate();
 
@@ -146,7 +148,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:8000/api/login", {
+      const response = await axios.post(`${API_URL}/login`, {
         email,
         password,
       });

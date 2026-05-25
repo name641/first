@@ -2,6 +2,8 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+const API_URL =
+  import.meta.env.VITE_API_URL;
 
 const Ce = () => {
   const navigate = useNavigate();
@@ -15,7 +17,7 @@ const Ce = () => {
     e.preventDefault();
 
     try {
-      await axios.post("http://localhost:8000/api/users", {
+      await axios.post(`${API_URL}/users`, {
         name,
         email,
         password,

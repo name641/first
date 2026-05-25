@@ -39,14 +39,6 @@ class ProfileController extends Controller
     }
 
     // 🗑 削除
-    // public function delete(Request $request)
-    // {
-    //     $request->user()->delete();
-
-    //     return response()->json([
-    //         'message' => 'deleted'
-    //     ]);
-    // }
     public function delete(Request $request)
 {
     $user = $request->user();
