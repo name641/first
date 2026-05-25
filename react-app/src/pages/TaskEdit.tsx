@@ -22,6 +22,9 @@ const TaskEdit = () => {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteText, setDeleteText] = useState("");
+
   // ======================
   // user取得
   // ======================
@@ -97,16 +100,19 @@ const TaskEdit = () => {
   // delete
   // ======================
   const handleDelete = async () => {
-    if (!window.confirm("本当に削除しますか？")) return;
+    const token =
+      localStorage.getItem("token");
 
-    const token = localStorage.getItem("token");
-
-    const res = await fetch(`${API_URL}/tasks/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await fetch(
+      `${API_URL}/tasks/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization:
+            `Bearer ${token}`,
+        },
+      }
+    );
 
     if (res.ok) {
       navigate("/functionlist");
@@ -114,7 +120,7 @@ const TaskEdit = () => {
       setError("削除失敗");
     }
   };
-
+  
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
@@ -308,7 +314,9 @@ const TaskEdit = () => {
                       <button
                         type="button"
                         className="btn btn-danger"
-                        onClick={handleDelete}
+                        onClick={() =>
+                          setShowDeleteModal(true)
+                        }
                       >
                         Delete
                       </button>
@@ -329,6 +337,80 @@ const TaskEdit = () => {
           </div>
         </div>
       </div>
+      {showDeleteModal && (
+        <>
+          <div
+            className="modal fade show"
+            style={{
+              display: "block",
+              background:
+                "rgba(0,0,0,0.5)"
+            }}
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+
+                <div className="modal-header">
+                  <h5 className="modal-title text-danger">
+                    ⚠ タスク削除
+                  </h5>
+                </div>
+
+                <div className="modal-body">
+                  <p>
+                    このタスクを削除します
+                  </p>
+
+                  <p className="text-danger small">
+                    DELETE を入力してください
+                  </p>
+
+                  <input
+                    className="form-control"
+                    value={deleteText}
+                    onChange={(e) =>
+                      setDeleteText(
+                        e.target.value
+                      )
+                    }
+                    placeholder="DELETE"
+                  />
+                </div>
+
+                <div className="modal-footer">
+
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      setShowDeleteModal(
+                        false
+                      );
+                      setDeleteText("");
+                    }}
+                  >
+                    キャンセル
+                  </button>
+
+                  <button
+                    className="btn btn-danger"
+                    disabled={
+                      deleteText !==
+                      "DELETE"
+                    }
+                    onClick={
+                      handleDelete
+                    }
+                  >
+                    削除
+                  </button>
+
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 };

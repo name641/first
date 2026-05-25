@@ -17,6 +17,9 @@ export default function Profile() {
   const [password, setPassword] = useState("");
   const [open, setOpen] = useState(false);
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteText, setDeleteText] = useState("");
+
   const navigate = useNavigate();
 
   // 👤 user取得
@@ -62,21 +65,27 @@ export default function Profile() {
 
   // 🗑 delete
   const handleDelete = async () => {
-    if (!window.confirm("本当にアカウントを削除しますか？")) return;
+    const token =
+      localStorage.getItem("token");
 
-    const token = localStorage.getItem("token");
+    await fetch(
+      `${API_URL}/profile`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization:
+            `Bearer ${token}`,
+        },
+      }
+    );
 
-    await fetch(`${API_URL}/profile`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    localStorage.removeItem(
+      "token"
+    );
 
-    localStorage.removeItem("token");
     navigate("/");
   };
-
+  
   //Logout
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -229,10 +238,18 @@ export default function Profile() {
                 <div className="d-flex gap-2">
                   <button
                     className="btn btn-danger"
-                    onClick={handleDelete}
+                    onClick={() =>
+                      setShowDeleteModal(true)
+                    }
                   >
                     Delete Account
                   </button>
+                  {/* <button
+                    className="btn btn-danger"
+                    onClick={handleDelete}
+                  >
+                    Delete Account
+                  </button> */}
 
                   <button
                     className="btn btn-primary px-4"
@@ -248,6 +265,101 @@ export default function Profile() {
           </div>
         </div>
       </div>
+      {showDeleteModal && (
+        <>
+          <div
+            className="modal fade show"
+            style={{
+              display: "block",
+              background:
+                "rgba(0,0,0,0.5)"
+            }}
+            onClick={() =>
+              setShowDeleteModal(false)
+            }
+          />
+
+          <div
+            className="modal fade show d-block"
+            tabIndex={-1}
+          >
+            <div className="modal-dialog modal-dialog-centered">
+
+              <div
+                className="modal-content"
+                style={{
+                  borderRadius: "20px"
+                }}
+              >
+
+                <div className="modal-header">
+
+                  <h5 className="modal-title text-danger">
+                    ⚠ アカウント削除
+                  </h5>
+
+                </div>
+
+                <div className="modal-body">
+
+                  <p>
+                    すべてのタスクと
+                    アカウント情報が
+                    完全に削除されます。
+                  </p>
+
+                  <p className="fw-bold">
+
+                    DELETE を入力してください
+
+                  </p>
+
+                  <input
+                    className="form-control"
+                    value={deleteText}
+                    onChange={(e) =>
+                      setDeleteText(
+                        e.target.value
+                      )
+                    }
+                    placeholder="DELETE"
+                  />
+
+                </div>
+
+                <div className="modal-footer">
+
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      setShowDeleteModal(false);
+                      setDeleteText("");
+                    }}
+                  >
+                    キャンセル
+                  </button>
+
+                  <button
+                    className="btn btn-danger"
+                    disabled={
+                      deleteText !==
+                      "DELETE"
+                    }
+                    onClick={
+                      handleDelete
+                    }
+                  >
+                    削除する
+                  </button>
+
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }

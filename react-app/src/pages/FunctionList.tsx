@@ -483,7 +483,7 @@ export default function Page() {
       >
         <div className="d-flex justify-content-between">
 
-          <h6 className="fw-bold">
+          <h6 className="fw-bold text-truncate">
             {task.title}
           </h6>
 
@@ -628,7 +628,7 @@ export default function Page() {
 
   return (
     <div
-      className="d-flex flex-column min-vh-100"
+      className="d-flex  flex-wrap flex-column min-vh-100"
     >
       <header
         className="navbar navbar-dark py-4"
@@ -680,7 +680,7 @@ export default function Page() {
         </div>
       </header>
 
-      <div className="d-flex gap-2 p-3 bg-white border-bottom">
+      <div className="d-flex flex-column flex-md-row gap-2 p-3 bg-white border-bottom">
 
         <input
           className="form-control"
