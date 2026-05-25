@@ -1,16 +1,19 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
-const API_URL =
-  import.meta.env.VITE_API_URL;
+import "bootstrap-icons/font/bootstrap-icons.css";
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 console.log(API_URL);
+
 const Login = () => {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -76,7 +79,13 @@ const Login = () => {
           }}
         >
           <h3 className="fw-bold m-0">MyApp</h3>
-          <p className="m-0 mt-2" style={{ color: "#d1d5db", fontSize: "14px" }}>
+          <p
+            className="m-0 mt-2"
+            style={{
+              color: "#d1d5db",
+              fontSize: "14px",
+            }}
+          >
             Sign in to continue
           </p>
         </div>
@@ -86,34 +95,82 @@ const Login = () => {
           <form onSubmit={handleLogin}>
             {/* Email */}
             <div className="mb-4">
-              <label className="form-label fw-semibold">Email</label>
+              <label className="form-label fw-semibold">
+                Email
+              </label>
+
               <input
                 type="email"
                 className="form-control form-control-lg"
                 placeholder="Enter your email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={{ borderRadius: "12px" }}
+                onChange={(e) =>
+                  setEmail(e.target.value)
+                }
+                style={{
+                  borderRadius: "12px",
+                }}
                 autoComplete="email"
               />
             </div>
 
             {/* Password */}
             <div className="mb-3">
-              <label className="form-label fw-semibold">Password</label>
-              <input
-                type="password"
-                className="form-control form-control-lg"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{ borderRadius: "12px" }}
-                autoComplete="current-password"
-              />
+              <label className="form-label fw-semibold">
+                Password
+              </label>
+
+              <div className="input-group">
+                <input
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+                  className="form-control form-control-lg"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) =>
+                    setPassword(e.target.value)
+                  }
+                  autoComplete="current-password"
+                  style={{
+                    borderRadius:
+                      "12px 0 0 12px",
+                    borderRight: "none",
+                  }}
+                />
+
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onClick={() =>
+                    setShowPassword(
+                      !showPassword
+                    )
+                  }
+                  style={{
+                    borderRadius:
+                      "0 12px 12px 0",
+                  }}
+                >
+                  <i
+                    className={`bi ${
+                      showPassword
+                        ? "bi-eye-slash"
+                        : "bi-eye"
+                    }`}
+                  ></i>
+                </button>
+              </div>
             </div>
 
             {/* Error */}
-            {error && <div className="alert alert-danger">{error}</div>}
+            {error && (
+              <div className="alert alert-danger">
+                {error}
+              </div>
+            )}
 
             {/* Buttons */}
             <div className="d-flex justify-content-between align-items-center mt-4">
@@ -129,10 +186,15 @@ const Login = () => {
 
               <button
                 className="btn btn-success px-4 py-2"
-                style={{ borderRadius: "10px", fontWeight: "bold" }}
+                style={{
+                  borderRadius: "10px",
+                  fontWeight: "bold",
+                }}
                 disabled={loading}
               >
-                {loading ? "Logging in..." : "Login"}
+                {loading
+                  ? "Logging in..."
+                  : "Login"}
               </button>
             </div>
           </form>

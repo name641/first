@@ -1,4 +1,3 @@
-
 body {
   font-family: "Segoe UI", "Noto Sans JP", sans-serif;
   background-color: #f5f7fb;
@@ -126,4 +125,16 @@ body {
   .task-signboard {
     margin-bottom: 10px;
   }
-} 
+}
+
+.task-column {
+  min-height: 80vh;
+}
+
+@media (max-width:768px) {
+
+  .task-column {
+    min-height: auto !important;
+  }
+
+}

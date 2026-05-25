@@ -50,6 +50,11 @@ export default function Page() {
   const [user, setUser] =
     useState<User | null>(null);
 
+  const [error, setError] =
+    useState("");
+  const [loading, setLoading] =
+    useState(true);
+
   const navigate = useNavigate();
 
   // ======================
@@ -60,6 +65,68 @@ export default function Page() {
     useSensor(PointerSensor)
   );
 
+  // // ======================
+  // // tasks取得
+  // // ======================
+
+  // useEffect(() => {
+  //   const fetchTasks = async () => {
+  //     try {
+  //       const token =
+  //         localStorage.getItem("token");
+
+  //       const res = await fetch(
+  //         `${API_URL}/tasks`,
+  //         {
+  //           headers: {
+  //             "Content-Type":
+  //               "application/json",
+  //             Accept: "application/json",
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //         }
+  //       );
+
+  //       const data = await res.json();
+
+  //       setTasks(data);
+  //     } catch (err) {
+  //       console.error(err);
+  //     }
+  //   };
+
+  //   fetchTasks();
+  // }, []);
+
+  // // ======================
+  // // user取得
+  // // ======================
+
+  // useEffect(() => {
+  //   const fetchUser = async () => {
+  //     try {
+  //       const token =
+  //         localStorage.getItem("token");
+
+  //       const res = await fetch(
+  //         `${API_URL}/me`,
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //         }
+  //       );
+
+  //       const data = await res.json();
+
+  //       setUser(data);
+  //     } catch (err) {
+  //       console.error(err);
+  //     }
+  //   };
+
+  //   fetchUser();
+  // }, []);
   // ======================
   // tasks取得
   // ======================
@@ -76,22 +143,51 @@ export default function Page() {
             headers: {
               "Content-Type":
                 "application/json",
-              Accept: "application/json",
-              Authorization: `Bearer ${token}`,
+              Accept:
+                "application/json",
+              Authorization:
+                `Bearer ${token}`,
             },
           }
         );
 
-        const data = await res.json();
+        // ログイン切れ
+        if (
+          res.status === 401
+        ) {
+          localStorage.removeItem(
+            "token"
+          );
+
+          navigate("/");
+          return;
+        }
+
+        if (!res.ok)
+          throw new Error();
+
+        const data =
+          await res.json();
 
         setTasks(data);
-      } catch (err) {
-        console.error(err);
+
+      } catch {
+
+        setError(
+          "タスクの取得に失敗しました"
+        );
+
+      } finally {
+
+        setLoading(false);
+
       }
     };
 
     fetchTasks();
-  }, []);
+
+  }, [navigate]);
+
 
   // ======================
   // user取得
@@ -107,22 +203,44 @@ export default function Page() {
           `${API_URL}/me`,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization:
+                `Bearer ${token}`,
             },
           }
         );
 
-        const data = await res.json();
+        // ログイン切れ
+        if (
+          res.status === 401
+        ) {
+          localStorage.removeItem(
+            "token"
+          );
+
+          navigate("/");
+          return;
+        }
+
+        if (!res.ok)
+          throw new Error();
+
+        const data =
+          await res.json();
 
         setUser(data);
-      } catch (err) {
-        console.error(err);
+
+      } catch {
+
+        setError(
+          "ユーザー情報の取得に失敗しました"
+        );
+
       }
     };
 
     fetchUser();
-  }, []);
 
+  }, [navigate]);
   // ======================
   // filter
   // ======================
@@ -461,6 +579,13 @@ export default function Page() {
       id: task.id,
     });
 
+    if (loading) {
+      return (
+        <div className="d-flex justify-content-center mt-5">
+          <div className="spinner-border text-primary" />
+        </div>
+      );
+    }
     return (
       <div
         ref={setNodeRef}
@@ -567,19 +692,14 @@ export default function Page() {
     return (
       <div className="col-md-4">
         <div
-          ref={
-            setNodeRef
-          }
-          className="p-3 rounded"
+          ref={setNodeRef}
+          className="p-3 rounded task-column"
           style={{
             background:
               isOver
                 ? "#e9f2ff"
                 : "#f5f7fb",
-            minHeight:
-              "80vh",
-            transition:
-              "0.2s",
+            transition: "0.2s",
           }}
         >
           <h5 className="mb-3 d-flex align-items-center gap-2">
@@ -630,6 +750,11 @@ export default function Page() {
     <div
       className="d-flex  flex-wrap flex-column min-vh-100"
     >
+      {error && (
+        <div className="alert alert-danger m-3">
+          {error}
+        </div>
+      )}
       <header
         className="navbar navbar-dark py-4"
         style={{ backgroundColor: "#1f2937" }}
