@@ -9,85 +9,179 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    // 一覧取得
     public function index()
     {
         return response()->json(
-            User::all()
+            User::select(
+                'id',
+                'name',
+                'email',
+                'created_at'
+            )->get()
         );
     }
 
-    // 新規作成
     public function store(
         Request $request
     )
     {
-        // バリデーション
-        $request->validate(
+        $data =
+            $request->validate(
 
             [
-                'name' => [
+                'name'=>[
                     'required',
                     'max:50'
                 ],
 
-                'email' => [
+                'email'=>[
                     'required',
                     'email',
                     'unique:users'
                 ],
 
-                'password' => [
+                'password'=>[
                     'required',
                     'min:8'
                 ]
             ],
 
-            // エラーメッセージ
             [
-                'name.required' =>
+                'name.required'=>
                     '名前を入力してください',
 
-                'name.max' =>
+                'name.max'=>
                     '名前は50文字以内です',
 
-                'email.required' =>
+                'email.required'=>
                     'メールを入力してください',
 
-                'email.email' =>
+                'email.email'=>
                     'メール形式が正しくありません',
 
-                'email.unique' =>
+                'email.unique'=>
                     'このメールは既に登録されています',
 
-                'password.required' =>
+                'password.required'=>
                     'パスワードを入力してください',
 
-                'password.min' =>
+                'password.min'=>
                     'パスワードは8文字以上です'
             ]
         );
 
-        $user = User::create([
+        $user =
+            User::create([
 
-            'name' =>
-                $request->name,
+            'name'=>
+                $data['name'],
 
-            'email' =>
-                $request->email,
+            'email'=>
+                $data['email'],
 
-            'password' =>
+            'password'=>
                 Hash::make(
-                    $request->password
+                    $data['password']
                 )
         ]);
 
         return response()->json([
-            'message' =>
+            'message'=>
                 'User created',
 
-            'user' =>
+            'user'=>
                 $user
-        ]);
+        ],201);
     }
 }
+// namespace App\Http\Controllers\Api;
+
+// use App\Http\Controllers\Controller;
+// use App\Models\User;
+// use Illuminate\Http\Request;
+// use Illuminate\Support\Facades\Hash;
+
+// class UserController extends Controller
+// {
+//     // 一覧取得
+//     public function index()
+//     {
+//         return response()->json(
+//             User::all()
+//         );
+//     }
+
+//     // 新規作成
+//     public function store(
+//         Request $request
+//     )
+//     {
+//         // バリデーション
+//         $request->validate(
+
+//             [
+//                 'name' => [
+//                     'required',
+//                     'max:50'
+//                 ],
+
+//                 'email' => [
+//                     'required',
+//                     'email',
+//                     'unique:users'
+//                 ],
+
+//                 'password' => [
+//                     'required',
+//                     'min:8'
+//                 ]
+//             ],
+
+//             // エラーメッセージ
+//             [
+//                 'name.required' =>
+//                     '名前を入力してください',
+
+//                 'name.max' =>
+//                     '名前は50文字以内です',
+
+//                 'email.required' =>
+//                     'メールを入力してください',
+
+//                 'email.email' =>
+//                     'メール形式が正しくありません',
+
+//                 'email.unique' =>
+//                     'このメールは既に登録されています',
+
+//                 'password.required' =>
+//                     'パスワードを入力してください',
+
+//                 'password.min' =>
+//                     'パスワードは8文字以上です'
+//             ]
+//         );
+
+//         $user = User::create([
+
+//             'name' =>
+//                 $request->name,
+
+//             'email' =>
+//                 $request->email,
+
+//             'password' =>
+//                 Hash::make(
+//                     $request->password
+//                 )
+//         ]);
+
+//         return response()->json([
+//             'message' =>
+//                 'User created',
+
+//             'user' =>
+//                 $user
+//         ]);
+//     }
+// } 

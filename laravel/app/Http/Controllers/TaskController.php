@@ -10,20 +10,75 @@ class TaskController extends Controller
     // ======================
     // 一覧取得
     // ======================
-
     public function index(Request $request)
-{
-    $query = Task::where('user_id', auth()->id());
+    {
+        $query = Task::where(
+            'user_id',
+            auth()->id()
+        );
 
-    // ★ステータスフィルター
-    if ($request->has('status') && $request->status !== 'all') {
-        $query->where('status', $request->status);
+        // 検索
+        if ($request->filled('search')) {
+
+            $query->where(function ($q) use ($request) {
+
+                $q->where(
+                    'title',
+                    'like',
+                    '%' . $request->search . '%'
+                )
+                ->orWhere(
+                    'description',
+                    'like',
+                    '%' . $request->search . '%'
+                );
+            });
+        }
+
+        // statusフィルタ
+        if (
+            $request->has('status')
+            && $request->status !== 'all'
+        ) {
+            $query->where(
+                'status',
+                $request->status
+            );
+        }
+
+        // deadlineフィルタ
+        if ($request->filled('deadline')) {
+
+            if ($request->deadline === 'overdue') {
+
+                $query->whereDate(
+                    'deadline',
+                    '<',
+                    today()
+                );
+
+            } elseif ($request->deadline === 'today') {
+
+                $query->whereDate(
+                    'deadline',
+                    today()
+                );
+
+            } elseif ($request->deadline === 'future') {
+
+                $query->whereDate(
+                    'deadline',
+                    '>',
+                    today()
+                );
+            }
+        }
+
+        return $query
+            ->orderBy('status')
+            ->orderBy('order')
+            ->get();
     }
-return $query
-    ->orderBy('status')
-    ->orderBy('order')
-    ->get();
-}
     // ======================
     // create view
     // （APIだけなら不要）
@@ -127,25 +182,27 @@ return $query
         return response()->json($task);
     }
     public function reorder(Request $request)
-{
-    foreach ($request->all() as $taskData) {
+    {
+        foreach ($request->all() as $taskData) {
 
-        Task::where(
-            'id',
-            $taskData['id']
-        )
-        ->where(
-            'user_id',
-            auth()->id()
-        )
-        ->update([
-            'status' => $taskData['status'],
-            'order' => $taskData['order']
+            Task::where(
+                'id',
+                $taskData['id']
+            )
+            ->where(
+                'user_id',
+                auth()->id()
+            )
+            ->update([
+                'status' => $taskData['status'],
+                'order' => $taskData['order']
+            ]);
+        }
+
+        return response()->json([
+            'success' => true
         ]);
     }
 
-    return response()->json([
-        'success' => true
-    ]);
-}
+    
 }

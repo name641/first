@@ -69,68 +69,6 @@ export default function Page() {
   // // tasks取得
   // // ======================
 
-  // useEffect(() => {
-  //   const fetchTasks = async () => {
-  //     try {
-  //       const token =
-  //         localStorage.getItem("token");
-
-  //       const res = await fetch(
-  //         `${API_URL}/tasks`,
-  //         {
-  //           headers: {
-  //             "Content-Type":
-  //               "application/json",
-  //             Accept: "application/json",
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         }
-  //       );
-
-  //       const data = await res.json();
-
-  //       setTasks(data);
-  //     } catch (err) {
-  //       console.error(err);
-  //     }
-  //   };
-
-  //   fetchTasks();
-  // }, []);
-
-  // // ======================
-  // // user取得
-  // // ======================
-
-  // useEffect(() => {
-  //   const fetchUser = async () => {
-  //     try {
-  //       const token =
-  //         localStorage.getItem("token");
-
-  //       const res = await fetch(
-  //         `${API_URL}/me`,
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         }
-  //       );
-
-  //       const data = await res.json();
-
-  //       setUser(data);
-  //     } catch (err) {
-  //       console.error(err);
-  //     }
-  //   };
-
-  //   fetchUser();
-  // }, []);
-  // ======================
-  // tasks取得
-  // ======================
-
   useEffect(() => {
     const fetchTasks = async () => {
       try {

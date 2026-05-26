@@ -35,6 +35,15 @@ Route::post('/login', function (Request $request) {
     return response()->json([
         'token' => $token
     ]);
+    
+    $request
+    ->user()
+    ->currentAccessToken()
+    ->delete();
+
+return response()->json([
+'message'=>'Logged out'
+]);
 });
 
 
