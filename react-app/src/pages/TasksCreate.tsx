@@ -172,6 +172,7 @@ const TasksCreate = () => {
             </div>
 
             <button
+              aria-label="menu-button"
               className="navbar-toggler"
               onClick={() => setOpen(true)}
             >

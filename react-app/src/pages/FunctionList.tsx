@@ -689,7 +689,10 @@ export default function Page() {
       className="d-flex  flex-wrap flex-column min-vh-100"
     >
       {error && (
-        <div className="alert alert-danger m-3">
+        <div
+          role="alert"
+          className="alert alert-danger m-3"
+        >
           {error}
         </div>
       )}

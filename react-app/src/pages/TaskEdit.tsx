@@ -31,14 +31,25 @@ const TaskEdit = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    fetch(`${API_URL}/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setUser(data))
-      .catch(() => { });
+fetch(`${API_URL}/me`, {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+})
+  .then((res) => {
+    if (!res.ok)
+      throw new Error()
+
+    return res.json()
+  })
+  .then((data) =>
+    setUser(data)
+  )
+  .catch(() =>
+    setError(
+      'ユーザー取得失敗'
+    )
+  )
   }, []);
 
   // ======================
@@ -120,7 +131,7 @@ const TaskEdit = () => {
       setError("削除失敗");
     }
   };
-  
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
@@ -254,11 +265,16 @@ const TaskEdit = () => {
 
                 <h4 className="mb-3 fw-bold">✏️ Edit Task</h4>
 
+
                 {error && (
-                  <div className="alert alert-danger py-2">
+                  <div
+                    role="alert"
+                    className="alert alert-danger py-2"
+                  >
                     {error}
                   </div>
                 )}
+
 
                 <form onSubmit={handleUpdate}>
 
