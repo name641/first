@@ -85,7 +85,7 @@ export default function Profile() {
 
     navigate("/");
   };
-  
+
   //Logout
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -206,7 +206,7 @@ export default function Profile() {
               </div>
 
               <input
-              data-testid="name-input"
+                data-testid="name-input"
                 className="form-control mb-2"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -214,7 +214,7 @@ export default function Profile() {
               />
 
               <input
-              data-testid="email-input"
+                data-testid="email-input"
                 className="form-control mb-2"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -222,7 +222,7 @@ export default function Profile() {
               />
 
               <input
-              data-testid="password-input"
+                data-testid="password-input"
                 type="password"
                 className="form-control mb-3"
                 value={password}
@@ -238,8 +238,10 @@ export default function Profile() {
                 >
                   Back
                 </button>
+                
                 <div className="d-flex gap-2">
                   <button
+                  data-testid="delete-btn"
                     className="btn btn-danger"
                     onClick={() =>
                       setShowDeleteModal(true)
@@ -255,6 +257,7 @@ export default function Profile() {
                   </button> */}
 
                   <button
+                  data-testid="update-btn"
                     className="btn btn-primary px-4"
                     onClick={handleUpdate}
                   >
