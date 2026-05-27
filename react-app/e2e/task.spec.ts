@@ -22,59 +22,32 @@ test.describe("FunctionList", () => {
                 await route.fulfill({
                     status: 200,
                     contentType: "application/json",
-                    body: JSON.stringify([
-                        {
-                            id: 1,
-                            title: "Task A",
-                            description: "aaa",
-                            status: "todo",
-                        },
-                        {
-                            id: 2,
-                            title: "Task B",
-                            description: "bbb",
-                            status: "doing",
-                        },
-                        {
-                            id: 3,
-                            title: "Task C",
-                            description: "ccc",
-                            status: "done",
-                        }
-                    ])
+body: JSON.stringify([
+{
+    id:1,
+    title:"Task A",
+    description:"aaa",
+    status:"todo",
+    deadline:"2026-05-26"
+},
+{
+    id:2,
+    title:"Task B",
+    description:"bbb",
+    status:"doing",
+    deadline:"2026-05-27"
+},
+{
+    id:3,
+    title:"Task C",
+    description:"ccc",
+    status:"done",
+    deadline:"2026-05-30"
+}
+])
                 });
             }
         );
-        // await page.route(
-        //     "**/api/tasks",
-        //     async route => {
-        //         await route.fulfill({
-        //             status: 200,
-        //             contentType: "application/json",
-        //             body: JSON.stringify([
-        //                 {
-        //                     id: 1,
-        //                     title: "Task A",
-        //                     description: "aaa",
-        //                     status: "todo",
-        //                 },
-        //                 {
-        //                     id: 2,
-        //                     title: "Task B",
-        //                     description: "bbb",
-        //                     status: "doing",
-        //                 },
-        //                 {
-        //                     id: 3,
-        //                     title: "Task C",
-        //                     description: "ccc",
-        //                     status: "done",
-        //                 }
-        //             ])
-        //         });
-        //     }
-        // );
-
         // me API
         await page.route(
             "**/*me",
@@ -176,40 +149,111 @@ test.describe("FunctionList", () => {
         }
     );
 
-    // test(
-    //     "ログアウト",
-    //     async ({ page }) => {
+    test(
+  "検索でタスク絞り込み",
+  async ({ page }) => {
 
-    //         await page
-    //             .locator(
-    //                 ".navbar-toggler"
-    //             )
-    //             .click();
+    await page
+      .getByTestId(
+        "search-input"
+      )
+      .fill(
+        "Task B"
+      );
 
-    //         await page
-    //             .getByTestId(
-    //                 "🚪 Logout"
-    //             )
-    //             .click();
+    await expect(
+      page.getByText(
+        "Task B"
+      )
+    ).toBeVisible();
 
-    //         await expect(
-    //             page
-    //         ).toHaveURL(
-    //             /\//
-    //         );
+    await expect(
+      page.getByText(
+        "Task A"
+      )
+    ).not.toBeVisible();
 
-    //         const token =
-    //             await page.evaluate(
-    //                 () =>
-    //                     localStorage.getItem(
-    //                         "token"
-    //                     )
-    //             );
+    await expect(
+      page.getByText(
+        "Task C"
+      )
+    ).not.toBeVisible();
 
-    //         expect(
-    //             token
-    //         ).toBeNull();
+  }
+);
 
-    //     }
-    // );
+test(
+  "期限フィルタ 今日",
+  async ({ page }) => {
+
+    await page
+      .getByTestId(
+        "deadline-filter"
+      )
+      .selectOption(
+        "today"
+      );
+
+    await expect(
+      page.getByText(
+        "Task B"
+      )
+    ).toBeVisible();
+
+  }
+);
+
+test(
+  "Logoutできる",
+  async ({ page }) => {
+
+    await page
+      .getByTestId(
+        "menu-button"
+      )
+      .click();
+
+    await page
+      .getByText(
+        "🚪 Logout"
+      )
+      .click();
+
+    await expect(
+      page
+    ).toHaveURL(
+      "/"
+    );
+
+  }
+);
+
+test(
+  "401時はログイン画面へ戻る",
+  async ({ page }) => {
+
+    await page.route(
+      "**/*tasks",
+      async route => {
+
+        await route.fulfill({
+          status:401,
+          body:"{}"
+        });
+
+      }
+    );
+
+    await page.goto(
+      "/functionlist"
+    );
+
+    await expect(
+      page
+    ).toHaveURL(
+      "/"
+    );
+
+  }
+);
 });

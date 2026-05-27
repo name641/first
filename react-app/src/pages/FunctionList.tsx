@@ -726,8 +726,14 @@ export default function Page() {
                 {user?.name}
               </span>
             </div>
-
             <button
+              data-testid="header-new-task-button"
+              className="btn btn-success btn-sm"
+              onClick={goCreateTask}
+            >
+              + New Task
+            </button>
+            {/* <button
               data-testid="new-task-button"
               className="btn btn-success btn-sm "
               onClick={
@@ -735,7 +741,7 @@ export default function Page() {
               }
             >
               + New Task
-            </button>
+            </button> */}
             <button
               data-testid="menu-button"
               className="navbar-toggler"
@@ -807,14 +813,20 @@ export default function Page() {
             <p className="text-muted">
               「+ New Task」から追加してください
             </p>
-
             <button
-              data-testid="new-task-button"
+              data-testid="empty-new-task-button"
               className="btn btn-success"
               onClick={goCreateTask}
             >
               + New Task
             </button>
+            {/* <button
+              data-testid="new-task-button"
+              className="btn btn-success"
+              onClick={goCreateTask}
+            >
+              + New Task
+            </button> */}
 
           </div>
 
