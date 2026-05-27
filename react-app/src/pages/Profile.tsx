@@ -206,6 +206,7 @@ export default function Profile() {
               </div>
 
               <input
+              data-testid="name-input"
                 className="form-control mb-2"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -213,6 +214,7 @@ export default function Profile() {
               />
 
               <input
+              data-testid="email-input"
                 className="form-control mb-2"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -220,6 +222,7 @@ export default function Profile() {
               />
 
               <input
+              data-testid="password-input"
                 type="password"
                 className="form-control mb-3"
                 value={password}

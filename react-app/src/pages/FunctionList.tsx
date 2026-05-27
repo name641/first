@@ -526,6 +526,7 @@ export default function Page() {
     }
     return (
       <div
+        data-testid={`task-${task.id}`}
         ref={setNodeRef}
         style={{
           transform:
@@ -727,6 +728,7 @@ export default function Page() {
             </div>
 
             <button
+              data-testid="new-task-button"
               className="btn btn-success btn-sm "
               onClick={
                 goCreateTask
@@ -734,8 +736,8 @@ export default function Page() {
             >
               + New Task
             </button>
-
             <button
+              data-testid="menu-button"
               className="navbar-toggler"
               onClick={() => setOpen(true)}
             >
@@ -749,6 +751,7 @@ export default function Page() {
       <div className="d-flex flex-column flex-md-row gap-2 p-3 bg-white border-bottom">
 
         <input
+          data-testid="search-input"
           className="form-control"
           placeholder="タスクを検索..."
           value={search}
@@ -760,6 +763,7 @@ export default function Page() {
         />
 
         <select
+          data-testid="deadline-filter"
           className="form-select w-auto"
           value={
             deadlineFilter
@@ -805,6 +809,7 @@ export default function Page() {
             </p>
 
             <button
+              data-testid="new-task-button"
               className="btn btn-success"
               onClick={goCreateTask}
             >
