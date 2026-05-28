@@ -154,44 +154,6 @@ const TaskEdit = () => {
         showMenu
         onMenu={() => setOpen(true)}
       />
-      {/* <header
-        className="navbar navbar-dark py-4"
-        style={{ backgroundColor: "#1f2937" }}
-      >
-        <div className="container-fluid px-3 d-flex justify-content-between align-items-center">
-          <a
-            className="navbar-brand fw-bold m-0"
-            style={{ cursor: "pointer" }}
-            onClick={() => navigate("/functionlist")}
-          >
-            MyApp
-          </a>
-
-
-          <div className="d-flex align-items-center gap-3">
-
-            <div
-              className=" px-2 py-1 rounded"
-              style={{
-                backgroundColor: "#374151",
-                cursor: "pointer"
-              }}
-              onClick={() => navigate("/profile")}
-            >
-              <i className="bi bi-person-circle" />
-              <span style={{ color: "white" }}>{user?.name}</span>
-            </div>
-
-            <button
-              className="navbar-toggler"
-              onClick={() => setOpen(true)}
-            >
-              <span className="navbar-toggler-icon" />
-            </button>
-
-          </div>
-        </div>
-      </header> */}
 
       {/* ================= OFFCANVAS ================= */}
       <div

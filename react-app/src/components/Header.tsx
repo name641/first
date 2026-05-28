@@ -62,24 +62,24 @@ export default function Header({
                     )}
 
                     {showNewTask && (
-<button
-  data-testid="header-new-task-button"
-  className="btn btn-success btn-sm"
-  onClick={onNewTask}
->
-  + New Task
-</button>
+                        <button
+                            data-testid="header-new-task-button"
+                            className="btn btn-success btn-sm"
+                            onClick={onNewTask}
+                        >
+                            + New Task
+                        </button>
                     )}
 
                     {showMenu && (
-<button
-  aria-label="menu-button"
-  data-testid="menu-button"
-  className="navbar-toggler"
-  onClick={onMenu}
->
-  <span className="navbar-toggler-icon" />
-</button>
+                        <button
+                            aria-label="menu-button"
+                            data-testid="menu-button"
+                            className="navbar-toggler"
+                            onClick={onMenu}
+                        >
+                            <span className="navbar-toggler-icon" />
+                        </button>
                     )}
 
                 </div>
