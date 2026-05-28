@@ -35,7 +35,7 @@ body: JSON.stringify([
     title:"Task B",
     description:"bbb",
     status:"doing",
-    deadline:"2026-05-27"
+    deadline: new Date().toISOString()
 },
 {
     id:3,
