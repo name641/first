@@ -1,10 +1,10 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../css/FunctionList.css";
-// import TaskCard from "../components/TaskCard";
 import Column from "../components/Column";
 import useTasks from "../hooks/useTasks";
-
-import { useEffect, useState } from "react";
+import useUser from "../hooks/useUser";
+// useEffect,
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -13,22 +13,26 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  // useDroppable,
 } from "@dnd-kit/core";
 
 import type { DragEndEvent } from "@dnd-kit/core";
 
-import {
-  // SortableContext,
-  // // useSortable,
-  // verticalListSortingStrategy,
-  arrayMove,
-} from "@dnd-kit/sortable";
+// import {
+//   arrayMove,
+// } from "@dnd-kit/sortable";
 
-import type {
-  Task,
-  User,
-} from "../types/task";
+// import type {
+//   // Task,
+//   User,
+// } from "../types/task";
+
+import {
+  filterTasks,
+} from "../utils/filterTasks";
+
+import {
+  reorderTasks,
+} from "../utils/dragAndDrop";
 
 const API_URL =
   import.meta.env.VITE_API_URL;
@@ -39,7 +43,6 @@ export default function Page() {
   const [deadlineFilter, setDeadlineFilter] =
     useState("all");
 
-
   // ======================
   // DnD
   // ======================
@@ -48,9 +51,8 @@ export default function Page() {
     useSensor(PointerSensor)
   );
 
-  // const [tasks, setTasks] = useState<Task[]>([]);
-  const [user, setUser] =
-    useState<User | null>(null);
+  // const [user, setUser] =
+  //   useState<User | null>(null);
 
   const navigate = useNavigate();
   const {
@@ -59,27 +61,26 @@ export default function Page() {
     taskError,
   } = useTasks(navigate);
 
-  const [error, setError] =
-    useState("");
-
-  // // ======================
-  // // tasks取得
-  // // ======================
+  // const [error, setError] =
+  //   useState("");
+  const {
+    user,
+    userError,
+  } = useUser(navigate);
+  // ======================
+  // user取得
+  // ======================
 
   // useEffect(() => {
-  //   const fetchTasks = async () => {
+  //   const fetchUser = async () => {
   //     try {
   //       const token =
   //         localStorage.getItem("token");
 
   //       const res = await fetch(
-  //         `${API_URL}/tasks`,
+  //         `${API_URL}/me`,
   //         {
   //           headers: {
-  //             "Content-Type":
-  //               "application/json",
-  //             Accept:
-  //               "application/json",
   //             Authorization:
   //               `Bearer ${token}`,
   //           },
@@ -104,148 +105,101 @@ export default function Page() {
   //       const data =
   //         await res.json();
 
-  //       setTasks(data);
+  //       setUser(data);
 
   //     } catch {
 
   //       setError(
-  //         "タスクの取得に失敗しました"
+  //         "ユーザー情報の取得に失敗しました"
   //       );
 
   //     }
   //   };
 
-  //   fetchTasks();
+  //   fetchUser();
 
   // }, [navigate]);
-
-  // ======================
-  // user取得
-  // ======================
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token =
-          localStorage.getItem("token");
-
-        const res = await fetch(
-          `${API_URL}/me`,
-          {
-            headers: {
-              Authorization:
-                `Bearer ${token}`,
-            },
-          }
-        );
-
-        // ログイン切れ
-        if (
-          res.status === 401
-        ) {
-          localStorage.removeItem(
-            "token"
-          );
-
-          navigate("/");
-          return;
-        }
-
-        if (!res.ok)
-          throw new Error();
-
-        const data =
-          await res.json();
-
-        setUser(data);
-
-      } catch {
-
-        setError(
-          "ユーザー情報の取得に失敗しました"
-        );
-
-      }
-    };
-
-    fetchUser();
-
-  }, [navigate]);
   // ======================
   // filter
   // ======================
 
-  const filteredTasks = tasks.filter(
-    (task) => {
-      const matchSearch =
-        task.title
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        task.description
-          .toLowerCase()
-          .includes(search.toLowerCase());
+  // const filteredTasks = tasks.filter(
+  //   (task) => {
+  //     const matchSearch =
+  //       task.title
+  //         .toLowerCase()
+  //         .includes(search.toLowerCase()) ||
+  //       task.description
+  //         .toLowerCase()
+  //         .includes(search.toLowerCase());
 
-      if (!matchSearch)
-        return false;
+  //     if (!matchSearch)
+  //       return false;
 
-      if (deadlineFilter === "all")
-        return true;
+  //     if (deadlineFilter === "all")
+  //       return true;
 
-      if (!task.deadline)
-        return false;
+  //     if (!task.deadline)
+  //       return false;
 
-      const today =
-        new Date();
+  //     const today =
+  //       new Date();
 
-      const d = new Date(
-        task.deadline
-      );
+  //     const d = new Date(
+  //       task.deadline
+  //     );
 
-      today.setHours(
-        0,
-        0,
-        0,
-        0
-      );
+  //     today.setHours(
+  //       0,
+  //       0,
+  //       0,
+  //       0
+  //     );
 
-      d.setHours(
-        0,
-        0,
-        0,
-        0
-      );
+  //     d.setHours(
+  //       0,
+  //       0,
+  //       0,
+  //       0
+  //     );
 
-      const diff =
-        Math.ceil(
-          (d.getTime() -
-            today.getTime()) /
-          (1000 *
-            60 *
-            60 *
-            24)
-        );
+  //     const diff =
+  //       Math.ceil(
+  //         (d.getTime() -
+  //           today.getTime()) /
+  //         (1000 *
+  //           60 *
+  //           60 *
+  //           24)
+  //       );
 
-      if (
-        deadlineFilter ===
-        "overdue"
-      )
-        return diff < 0;
+  //     if (
+  //       deadlineFilter ===
+  //       "overdue"
+  //     )
+  //       return diff < 0;
 
-      if (
-        deadlineFilter ===
-        "today"
-      )
-        return diff === 0;
+  //     if (
+  //       deadlineFilter ===
+  //       "today"
+  //     )
+  //       return diff === 0;
 
-      if (
-        deadlineFilter ===
-        "future"
-      )
-        return diff > 0;
+  //     if (
+  //       deadlineFilter ===
+  //       "future"
+  //     )
+  //       return diff > 0;
 
-      return true;
-    }
-  );
+  //     return true;
+  //   }
+  // );
+  const filteredTasks =
+    filterTasks(
+      tasks,
+      search,
+      deadlineFilter
+    );
 
   const todoTasks =
     filteredTasks.filter(
@@ -278,67 +232,73 @@ export default function Page() {
     const activeId = Number(active.id);
     const overId = over.id;
 
-    const activeTask = tasks.find(
-      (t) => t.id === activeId
-    );
-
-    if (!activeTask) return;
-
-    let newStatus = activeTask.status;
-
-    // status取得
-    if (
-      overId === "todo" ||
-      overId === "doing" ||
-      overId === "done"
-    ) {
-      newStatus =
-        overId as Task["status"];
-    } else {
-      const overTask = tasks.find(
-        (t) => t.id === Number(overId)
+    const updatedTasks =
+      reorderTasks(
+        tasks,
+        activeId,
+        overId
       );
+    // const activeTask = tasks.find(
+    //   (t) => t.id === activeId
+    // );
 
-      if (overTask) {
-        newStatus = overTask.status;
-      }
-    }
+    // if (!activeTask) return;
 
-    // status更新
-    let updatedTasks = tasks.map(
-      (task) =>
-        task.id === activeId
-          ? {
-            ...task,
-            status: newStatus,
-          }
-          : task
-    );
+    // let newStatus = activeTask.status;
 
-    const oldIndex =
-      updatedTasks.findIndex(
-        (t) => t.id === activeId
-      );
+    // // status取得
+    // if (
+    //   overId === "todo" ||
+    //   overId === "doing" ||
+    //   overId === "done"
+    // ) {
+    //   newStatus =
+    //     overId as Task["status"];
+    // } else {
+    //   const overTask = tasks.find(
+    //     (t) => t.id === Number(overId)
+    //   );
 
-    let newIndex = oldIndex;
+    //   if (overTask) {
+    //     newStatus = overTask.status;
+    //   }
+    // }
 
-    if (
-      overId !== "todo" &&
-      overId !== "doing" &&
-      overId !== "done"
-    ) {
-      newIndex =
-        updatedTasks.findIndex(
-          (t) =>
-            t.id === Number(overId)
-        );
-    }
+    // // status更新
+    // let updatedTasks = tasks.map(
+    //   (task) =>
+    //     task.id === activeId
+    //       ? {
+    //         ...task,
+    //         status: newStatus,
+    //       }
+    //       : task
+    // );
 
-    updatedTasks = arrayMove(
-      updatedTasks,
-      oldIndex,
-      newIndex
-    );
+    // const oldIndex =
+    //   updatedTasks.findIndex(
+    //     (t) => t.id === activeId
+    //   );
+
+    // let newIndex = oldIndex;
+
+    // if (
+    //   overId !== "todo" &&
+    //   overId !== "doing" &&
+    //   overId !== "done"
+    // ) {
+    //   newIndex =
+    //     updatedTasks.findIndex(
+    //       (t) =>
+    //         t.id === Number(overId)
+    //     );
+    // }
+
+    // updatedTasks = arrayMove(
+    //   updatedTasks,
+    //   oldIndex,
+    //   newIndex
+    // );
 
     setTasks(updatedTasks);
 
@@ -400,98 +360,16 @@ export default function Page() {
       navigate("/");
     };
 
-  // ======================
-  // Column
-  // ======================
-
-  // const Column = ({
-  //   title,
-  //   tasks,
-  //   color,
-  //   status,
-  // }: {
-  //   title: string;
-  //   tasks: Task[];
-  //   color: string;
-  //   status:
-  //   | "todo"
-  //   | "doing"
-  //   | "done";
-  // }) => {
-  //   const {
-  //     setNodeRef,
-  //     isOver,
-  //   } = useDroppable({
-  //     id: status,
-  //   });
-
-  //   return (
-  //     <div className="col-md-4">
-  //       <div
-  //         ref={setNodeRef}
-  //         className="p-3 rounded task-column"
-  //         style={{
-  //           background:
-  //             isOver
-  //               ? "#e9f2ff"
-  //               : "#f5f7fb",
-  //           transition: "0.2s",
-  //         }}
-  //       >
-  //         <h5 className="mb-3 d-flex align-items-center gap-2">
-  //           <span
-  //             style={{
-  //               width: 10,
-  //               height: 10,
-  //               borderRadius:
-  //                 "50%",
-  //               background:
-  //                 color,
-  //             }}
-  //           />
-  //           {title} (
-  //           {tasks.length})
-  //         </h5>
-
-  //         <SortableContext
-  //           items={tasks.map(
-  //             (t) =>
-  //               t.id
-  //           )}
-  //           strategy={
-  //             verticalListSortingStrategy
-  //           }
-  //         >
-  //           {tasks.map(
-  //             (
-  //               task
-  //             ) => (
-  //               <TaskCard
-  //                 key={
-  //                   task.id
-  //                 }
-  //                 task={
-  //                   task
-  //                 }
-  //               />
-  //             )
-  //           )}
-  //         </SortableContext>
-  //       </div>
-  //     </div>
-  //   );
-  // };
-
   return (
     <div
       className="d-flex  flex-wrap flex-column min-vh-100"
     >
-      {taskError || error && (
+      {(taskError || userError) && (
         <div
           role="alert"
           className="alert alert-danger m-3"
         >
-          {taskError || error}
+          {taskError || userError}
         </div>
       )}
       <header

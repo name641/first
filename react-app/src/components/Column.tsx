@@ -1,3 +1,4 @@
+//見た目　UIの部品
 import {
     useDroppable,
 } from "@dnd-kit/core";
