@@ -3,9 +3,10 @@ import "../css/FunctionList.css";
 import Column from "../components/Column";
 import useTasks from "../hooks/useTasks";
 import useUser from "../hooks/useUser";
-// useEffect,
+import Header from "../components/Header";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import type { DragEndEvent } from "@dnd-kit/core";
 
 import {
   DndContext,
@@ -14,17 +15,6 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-
-import type { DragEndEvent } from "@dnd-kit/core";
-
-// import {
-//   arrayMove,
-// } from "@dnd-kit/sortable";
-
-// import type {
-//   // Task,
-//   User,
-// } from "../types/task";
 
 import {
   filterTasks,
@@ -51,9 +41,6 @@ export default function Page() {
     useSensor(PointerSensor)
   );
 
-  // const [user, setUser] =
-  //   useState<User | null>(null);
-
   const navigate = useNavigate();
   const {
     tasks,
@@ -61,139 +48,11 @@ export default function Page() {
     taskError,
   } = useTasks(navigate);
 
-  // const [error, setError] =
-  //   useState("");
   const {
     user,
     userError,
   } = useUser(navigate);
-  // ======================
-  // user取得
-  // ======================
 
-  // useEffect(() => {
-  //   const fetchUser = async () => {
-  //     try {
-  //       const token =
-  //         localStorage.getItem("token");
-
-  //       const res = await fetch(
-  //         `${API_URL}/me`,
-  //         {
-  //           headers: {
-  //             Authorization:
-  //               `Bearer ${token}`,
-  //           },
-  //         }
-  //       );
-
-  //       // ログイン切れ
-  //       if (
-  //         res.status === 401
-  //       ) {
-  //         localStorage.removeItem(
-  //           "token"
-  //         );
-
-  //         navigate("/");
-  //         return;
-  //       }
-
-  //       if (!res.ok)
-  //         throw new Error();
-
-  //       const data =
-  //         await res.json();
-
-  //       setUser(data);
-
-  //     } catch {
-
-  //       setError(
-  //         "ユーザー情報の取得に失敗しました"
-  //       );
-
-  //     }
-  //   };
-
-  //   fetchUser();
-
-  // }, [navigate]);
-  // ======================
-  // filter
-  // ======================
-
-  // const filteredTasks = tasks.filter(
-  //   (task) => {
-  //     const matchSearch =
-  //       task.title
-  //         .toLowerCase()
-  //         .includes(search.toLowerCase()) ||
-  //       task.description
-  //         .toLowerCase()
-  //         .includes(search.toLowerCase());
-
-  //     if (!matchSearch)
-  //       return false;
-
-  //     if (deadlineFilter === "all")
-  //       return true;
-
-  //     if (!task.deadline)
-  //       return false;
-
-  //     const today =
-  //       new Date();
-
-  //     const d = new Date(
-  //       task.deadline
-  //     );
-
-  //     today.setHours(
-  //       0,
-  //       0,
-  //       0,
-  //       0
-  //     );
-
-  //     d.setHours(
-  //       0,
-  //       0,
-  //       0,
-  //       0
-  //     );
-
-  //     const diff =
-  //       Math.ceil(
-  //         (d.getTime() -
-  //           today.getTime()) /
-  //         (1000 *
-  //           60 *
-  //           60 *
-  //           24)
-  //       );
-
-  //     if (
-  //       deadlineFilter ===
-  //       "overdue"
-  //     )
-  //       return diff < 0;
-
-  //     if (
-  //       deadlineFilter ===
-  //       "today"
-  //     )
-  //       return diff === 0;
-
-  //     if (
-  //       deadlineFilter ===
-  //       "future"
-  //     )
-  //       return diff > 0;
-
-  //     return true;
-  //   }
-  // );
   const filteredTasks =
     filterTasks(
       tasks,
@@ -238,67 +97,6 @@ export default function Page() {
         activeId,
         overId
       );
-    // const activeTask = tasks.find(
-    //   (t) => t.id === activeId
-    // );
-
-    // if (!activeTask) return;
-
-    // let newStatus = activeTask.status;
-
-    // // status取得
-    // if (
-    //   overId === "todo" ||
-    //   overId === "doing" ||
-    //   overId === "done"
-    // ) {
-    //   newStatus =
-    //     overId as Task["status"];
-    // } else {
-    //   const overTask = tasks.find(
-    //     (t) => t.id === Number(overId)
-    //   );
-
-    //   if (overTask) {
-    //     newStatus = overTask.status;
-    //   }
-    // }
-
-    // // status更新
-    // let updatedTasks = tasks.map(
-    //   (task) =>
-    //     task.id === activeId
-    //       ? {
-    //         ...task,
-    //         status: newStatus,
-    //       }
-    //       : task
-    // );
-
-    // const oldIndex =
-    //   updatedTasks.findIndex(
-    //     (t) => t.id === activeId
-    //   );
-
-    // let newIndex = oldIndex;
-
-    // if (
-    //   overId !== "todo" &&
-    //   overId !== "doing" &&
-    //   overId !== "done"
-    // ) {
-    //   newIndex =
-    //     updatedTasks.findIndex(
-    //       (t) =>
-    //         t.id === Number(overId)
-    //     );
-    // }
-
-    // updatedTasks = arrayMove(
-    //   updatedTasks,
-    //   oldIndex,
-    //   newIndex
-    // );
 
     setTasks(updatedTasks);
 
@@ -372,7 +170,14 @@ export default function Page() {
           {taskError || userError}
         </div>
       )}
-      <header
+      <Header
+        userName={user?.name}
+        showNewTask
+        showMenu
+        onNewTask={goCreateTask}
+        onMenu={() => setOpen(true)}
+      />
+      {/* <header
         className="navbar navbar-dark py-4"
         style={{ backgroundColor: "#1f2937" }}
       >
@@ -418,7 +223,7 @@ export default function Page() {
 
           </div>
         </div>
-      </header>
+      </header> */}
 
       <div className="d-flex flex-column flex-md-row gap-2 p-3 bg-white border-bottom">
 

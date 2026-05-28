@@ -1,3 +1,4 @@
+import Header from "../components/Header";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -95,7 +96,7 @@ export default function Profile() {
   return (
     <>
       {/* ================= HEADER（FunctionList統一） ================= */}
-      <header
+      {/* <header
         className="navbar navbar-dark py-4"
         style={{ backgroundColor: "#1f2937" }}
       >
@@ -133,8 +134,12 @@ export default function Profile() {
             </button>
           </div>
         </div>
-      </header>
-
+      </header> */}
+      <Header
+        userName={user?.name}
+        showMenu
+        onMenu={() => setOpen(true)}
+      />
       {/* ================= OFFCANVAS（統一） ================= */}
       <div
         className={`offcanvas offcanvas-end text-bg-dark ${open ? "show" : ""}`}

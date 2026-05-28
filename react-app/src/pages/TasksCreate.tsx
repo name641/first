@@ -1,4 +1,5 @@
 import "bootstrap/dist/css/bootstrap.min.css";
+import Header from "../components/Header";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -142,7 +143,12 @@ const TasksCreate = () => {
   return (
     <>
       {/* ================= HEADER ================= */}
-      <header
+      <Header
+        userName={user?.name}
+        showMenu
+        onMenu={() => setOpen(true)}
+      />
+      {/* <header
         className="navbar navbar-dark py-4"
         style={{ backgroundColor: "#1f2937" }}
       >
@@ -180,7 +186,7 @@ const TasksCreate = () => {
             </button>
           </div>
         </div>
-      </header>
+      </header> */}
 
       {/* 以下省略（元のUIそのままでOK） */}
       {/* ================= OFFCANVAS ================= */}
