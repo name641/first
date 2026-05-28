@@ -1,10 +1,12 @@
-import { useState } from "react";
-import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+// import axios from "axios";
+import { useNavigate, Link } from "react-router-dom";
+import { registerUser } from "../api/auth";
+import { useState } from "react";
+import { getErrorMessage } from "../utils/getErrorMessage";
 
-const API_URL =
-  import.meta.env.VITE_API_URL;
+// const API_URL =
+//   import.meta.env.VITE_API_URL;
 
 const Ce = () => {
   const navigate = useNavigate();
@@ -29,14 +31,19 @@ const Ce = () => {
     setMessage("");
 
     try {
-      await axios.post(
-        `${API_URL}/users`,
-        {
-          name,
-          email,
-          password,
-        }
+      await registerUser(
+        name,
+        email,
+        password
       );
+      // await axios.post(
+      //   `${API_URL}/users`,
+      //   {
+      //     name,
+      //     email,
+      //     password,
+      //   }
+      // );
 
       setMessage(
         "登録成功！"
@@ -46,66 +53,69 @@ const Ce = () => {
         navigate("/");
       }, 1000);
 
-    } catch (error: any) {
+     } catch (error) {
+      setMessage( getErrorMessage(error) ); 
+     }
+     // catch (error: any) {
 
-      if (
-        axios.isAxiosError(
-          error
-        )
-      ) {
+    //   if (
+    //     axios.isAxiosError(
+    //       error
+    //     )
+    //   ) {
 
-        // Laravel validation
-        if (
-          error.response
-            ?.status === 422
-        ) {
+    //     // Laravel validation
+    //     if (
+    //       error.response
+    //         ?.status === 422
+    //     ) {
 
-          const errors =
-            error.response
-              .data.errors;
+    //       const errors =
+    //         error.response
+    //           .data.errors;
 
-          const firstError =
-            Object.values(
-              errors
-            )[0] as string[];
+    //       const firstError =
+    //         Object.values(
+    //           errors
+    //         )[0] as string[];
 
-          setMessage(
-            firstError[0]
-          );
+    //       setMessage(
+    //         firstError[0]
+    //       );
 
-        }
+    //     }
 
-        // メール重複
-        else if (
-          error.response
-            ?.status === 409
-        ) {
+    //     // メール重複
+    //     else if (
+    //       error.response
+    //         ?.status === 409
+    //     ) {
 
-          setMessage(
-            "このメールアドレスは既に使用されています"
-          );
+    //       setMessage(
+    //         "このメールアドレスは既に使用されています"
+    //       );
 
-        }
+    //     }
 
-        else {
+    //     else {
 
-          setMessage(
-            "登録に失敗しました"
-          );
+    //       setMessage(
+    //         "登録に失敗しました"
+    //       );
 
-        }
+    //     }
 
-      }
+    //   }
 
-      else {
+    //   else {
 
-        setMessage(
-          "通信エラーが発生しました"
-        );
+    //     setMessage(
+    //       "通信エラーが発生しました"
+    //     );
 
-      }
+    //   }
 
-    }
+    // }
   };
 
   return (
@@ -258,13 +268,12 @@ const Ce = () => {
 
               <div
                 data-testid="message"
-                className={`alert mt-3 ${
-                  message.includes(
-                    "成功"
-                  )
+                className={`alert mt-3 ${message.includes(
+                  "成功"
+                )
                     ? "alert-success"
                     : "alert-danger"
-                }`}
+                  }`}
               >
                 {message}
               </div>
