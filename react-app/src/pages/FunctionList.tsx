@@ -1,5 +1,6 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../css/FunctionList.css";
+import TaskCard from "../components/TaskCard";
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -17,25 +18,34 @@ import type { DragEndEvent } from "@dnd-kit/core";
 
 import {
   SortableContext,
-  useSortable,
+  // useSortable,
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
 
-import { CSS } from "@dnd-kit/utilities";
+// import { CSS } from "@dnd-kit/utilities";
 
-type Task = {
-  id: number;
-  title: string;
-  description: string;
-  deadline?: string | null;
-  status?: "todo" | "doing" | "done";
-};
+import type {
+  Task,
+  User,
+} from "../types/task";
 
-type User = {
-  id: number;
-  name: string;
-};
+// import {
+//   getDeadlineColor,
+//   getRemainingDays,
+// } from "../utils/deadline"; 
+// type Task = {
+//   id: number;
+//   title: string;
+//   description: string;
+//   deadline?: string | null;
+//   status?: "todo" | "doing" | "done";
+// };
+
+// type User = {
+//   id: number;
+//   name: string;
+// };
 
 const API_URL =
   import.meta.env.VITE_API_URL;
@@ -52,8 +62,8 @@ export default function Page() {
 
   const [error, setError] =
     useState("");
-  const [loading, setLoading] =
-    useState(true);
+  // const [loading, setLoading] =
+  //   useState(true);
 
   const navigate = useNavigate();
 
@@ -115,11 +125,11 @@ export default function Page() {
           "タスクの取得に失敗しました"
         );
 
-      } finally {
+       }// finally {
 
-        setLoading(false);
+      //   setLoading(false);
 
-      }
+      // }
     };
 
     fetchTasks();
@@ -272,95 +282,95 @@ export default function Page() {
       (t) =>
         t.status === "done"
     );
-
+  
   // ======================
   // Utils
   // ======================
 
-  const getDeadlineColor = (
-    deadline?: string | null
-  ) => {
-    if (!deadline)
-      return "#6c757d";
+  // const getDeadlineColor = (
+  //   deadline?: string | null
+  // ) => {
+  //   if (!deadline)
+  //     return "#6c757d";
 
-    const today =
-      new Date();
+  //   const today =
+  //     new Date();
 
-    const d = new Date(
-      deadline
-    );
+  //   const d = new Date(
+  //     deadline
+  //   );
 
-    today.setHours(
-      0,
-      0,
-      0,
-      0
-    );
+  //   today.setHours(
+  //     0,
+  //     0,
+  //     0,
+  //     0
+  //   );
 
-    d.setHours(
-      0,
-      0,
-      0,
-      0
-    );
+  //   d.setHours(
+  //     0,
+  //     0,
+  //     0,
+  //     0
+  //   );
 
-    if (d < today)
-      return "#dc3545";
+  //   if (d < today)
+  //     return "#dc3545";
 
-    if (
-      d.getTime() ===
-      today.getTime()
-    )
-      return "#ffc107";
+  //   if (
+  //     d.getTime() ===
+  //     today.getTime()
+  //   )
+  //     return "#ffc107";
 
-    return "#198754";
-  };
+  //   return "#198754";
+  // };
 
-  const getRemainingDays = (
-    deadline?: string | null
-  ) => {
-    if (!deadline)
-      return null;
+  // const getRemainingDays = (
+  //   deadline?: string | null
+  // ) => {
+  //   if (!deadline)
+  //     return null;
 
-    const today =
-      new Date();
+  //   const today =
+  //     new Date();
 
-    const d = new Date(
-      deadline
-    );
+  //   const d = new Date(
+  //     deadline
+  //   );
 
-    today.setHours(
-      0,
-      0,
-      0,
-      0
-    );
+  //   today.setHours(
+  //     0,
+  //     0,
+  //     0,
+  //     0
+  //   );
 
-    d.setHours(
-      0,
-      0,
-      0,
-      0
-    );
+  //   d.setHours(
+  //     0,
+  //     0,
+  //     0,
+  //     0
+  //   );
 
-    const diff =
-      Math.ceil(
-        (d.getTime() -
-          today.getTime()) /
-        (1000 *
-          60 *
-          60 *
-          24)
-      );
+  //   const diff =
+  //     Math.ceil(
+  //       (d.getTime() -
+  //         today.getTime()) /
+  //       (1000 *
+  //         60 *
+  //         60 *
+  //         24)
+  //     );
 
-    if (diff < 0)
-      return "期限切れ";
+  //   if (diff < 0)
+  //     return "期限切れ";
 
-    if (diff === 0)
-      return "今日";
+  //   if (diff === 0)
+  //     return "今日";
 
-    return `あと${diff}日`;
-  };
+  //   return `あと${diff}日`;
+  // };
 
   // ======================
   // Drag
@@ -501,108 +511,108 @@ export default function Page() {
   // Card
   // ======================
 
-  const TaskCard = ({
-    task,
-  }: {
-    task: Task;
-  }) => {
-    const {
-      attributes,
-      listeners,
-      setNodeRef,
-      transform,
-      transition,
-      isDragging,
-    } = useSortable({
-      id: task.id,
-    });
+  // const TaskCard = ({
+  //   task,
+  // }: {
+  //   task: Task;
+  // }) => {
+  //   const {
+  //     attributes,
+  //     listeners,
+  //     setNodeRef,
+  //     transform,
+  //     transition,
+  //     isDragging,
+  //   } = useSortable({
+  //     id: task.id,
+  //   });
 
-    if (loading) {
-      return (
-        <div className="d-flex justify-content-center mt-5">
-          <div className="spinner-border text-primary" />
-        </div>
-      );
-    }
-    return (
-      <div
-        data-testid={`task-${task.id}`}
-        ref={setNodeRef}
-        style={{
-          transform:
-            CSS.Transform.toString(
-              transform
-            ),
-          transition,
-          opacity: isDragging ? 0.5 : 1,
-          borderLeft: `5px solid ${getDeadlineColor(
-            task.deadline
-          )}`,
-          cursor: "pointer",
-        }}
-        className="p-3 bg-white rounded shadow-sm mb-3"
-        onClick={() =>
-          navigate(`/taskedit/${task.id}`)
-        }
-      >
-        <div className="d-flex justify-content-between">
+  //   if (loading) {
+  //     return (
+  //       <div className="d-flex justify-content-center mt-5">
+  //         <div className="spinner-border text-primary" />
+  //       </div>
+  //     );
+  //   }
+  //   return (
+  //     <div
+  //       data-testid={`task-${task.id}`}
+  //       ref={setNodeRef}
+  //       style={{
+  //         transform:
+  //           CSS.Transform.toString(
+  //             transform
+  //           ),
+  //         transition,
+  //         opacity: isDragging ? 0.5 : 1,
+  //         borderLeft: `5px solid ${getDeadlineColor(
+  //           task.deadline
+  //         )}`,
+  //         cursor: "pointer",
+  //       }}
+  //       className="p-3 bg-white rounded shadow-sm mb-3"
+  //       onClick={() =>
+  //         navigate(`/taskedit/${task.id}`)
+  //       }
+  //     >
+  //       <div className="d-flex justify-content-between">
 
-          <h6 className="fw-bold text-truncate">
-            {task.title}
-          </h6>
+  //         <h6 className="fw-bold text-truncate">
+  //           {task.title}
+  //         </h6>
 
-          <span
-            className={`badge ${task.status === "done"
-              ? "bg-success"
-              : task.status === "doing"
-                ? "bg-warning text-dark"
-                : "bg-secondary"
-              }`}
-          >
-            {task.status === "done"
-              ? "完了"
-              : task.status === "doing"
-                ? "進行中"
-                : "未着手"}
-          </span>
+  //         <span
+  //           className={`badge ${task.status === "done"
+  //             ? "bg-success"
+  //             : task.status === "doing"
+  //               ? "bg-warning text-dark"
+  //               : "bg-secondary"
+  //             }`}
+  //         >
+  //           {task.status === "done"
+  //             ? "完了"
+  //             : task.status === "doing"
+  //               ? "進行中"
+  //               : "未着手"}
+  //         </span>
 
-        </div>
+  //       </div>
 
-        <p className="text-muted small mt-2">
-          {task.description}
-        </p>
+  //       <p className="text-muted small mt-2">
+  //         {task.description}
+  //       </p>
 
-        <div className="d-flex justify-content-between small">
+  //       <div className="d-flex justify-content-between small">
 
-          <span
-            style={{
-              color: getDeadlineColor(
-                task.deadline
-              ),
-              fontWeight: 600,
-            }}
-          >
-            {getRemainingDays(
-              task.deadline
-            )}
-          </span>
+  //         <span
+  //           style={{
+  //             color: getDeadlineColor(
+  //               task.deadline
+  //             ),
+  //             fontWeight: 600,
+  //           }}
+  //         >
+  //           {getRemainingDays(
+  //             task.deadline
+  //           )}
+  //         </span>
 
-          {/* カレンダーの場所に移動 */}
-          <span
-            {...attributes}
-            {...listeners}
-            style={{
-              cursor: "grab",
-              fontSize: "18px",
-            }}
-          >
-            ⋮⋮
-          </span>
+  //         {/* カレンダーの場所に移動 */}
+  //         <span
+  //           {...attributes}
+  //           {...listeners}
+  //           style={{
+  //             cursor: "grab",
+  //             fontSize: "18px",
+  //           }}
+  //         >
+  //           ⋮⋮
+  //         </span>
 
-        </div>
-      </div>
-    );
-  };
+  //       </div>
+  //     </div>
+  //   );
+  // };
   // ======================
   // Column
   // ======================
@@ -733,15 +743,6 @@ export default function Page() {
             >
               + New Task
             </button>
-            {/* <button
-              data-testid="new-task-button"
-              className="btn btn-success btn-sm "
-              onClick={
-                goCreateTask
-              }
-            >
-              + New Task
-            </button> */}
             <button
               data-testid="menu-button"
               className="navbar-toggler"
@@ -820,13 +821,6 @@ export default function Page() {
             >
               + New Task
             </button>
-            {/* <button
-              data-testid="new-task-button"
-              className="btn btn-success"
-              onClick={goCreateTask}
-            >
-              + New Task
-            </button> */}
 
           </div>
 
