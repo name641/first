@@ -238,10 +238,10 @@ export default function Profile() {
                 >
                   Back
                 </button>
-                
+
                 <div className="d-flex gap-2">
                   <button
-                  data-testid="delete-btn"
+                    data-testid="delete-btn"
                     className="btn btn-danger"
                     onClick={() =>
                       setShowDeleteModal(true)
@@ -257,7 +257,7 @@ export default function Profile() {
                   </button> */}
 
                   <button
-                  data-testid="update-btn"
+                    data-testid="update-btn"
                     className="btn btn-primary px-4"
                     onClick={handleUpdate}
                   >

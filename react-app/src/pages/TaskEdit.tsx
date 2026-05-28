@@ -31,25 +31,25 @@ const TaskEdit = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-fetch(`${API_URL}/me`, {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-})
-  .then((res) => {
-    if (!res.ok)
-      throw new Error()
+    fetch(`${API_URL}/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok)
+          throw new Error()
 
-    return res.json()
-  })
-  .then((data) =>
-    setUser(data)
-  )
-  .catch(() =>
-    setError(
-      'ユーザー取得失敗'
-    )
-  )
+        return res.json()
+      })
+      .then((data) =>
+        setUser(data)
+      )
+      .catch(() =>
+        setError(
+          'ユーザー取得失敗'
+        )
+      )
   }, []);
 
   // ======================
