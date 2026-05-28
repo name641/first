@@ -1,12 +1,9 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-// import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { registerUser } from "../api/auth";
 import { useState } from "react";
 import { getErrorMessage } from "../utils/getErrorMessage";
 
-// const API_URL =
-//   import.meta.env.VITE_API_URL;
 
 const Ce = () => {
   const navigate = useNavigate();
@@ -36,14 +33,6 @@ const Ce = () => {
         email,
         password
       );
-      // await axios.post(
-      //   `${API_URL}/users`,
-      //   {
-      //     name,
-      //     email,
-      //     password,
-      //   }
-      // );
 
       setMessage(
         "登録成功！"
@@ -56,66 +45,6 @@ const Ce = () => {
      } catch (error) {
       setMessage( getErrorMessage(error) ); 
      }
-     // catch (error: any) {
-
-    //   if (
-    //     axios.isAxiosError(
-    //       error
-    //     )
-    //   ) {
-
-    //     // Laravel validation
-    //     if (
-    //       error.response
-    //         ?.status === 422
-    //     ) {
-
-    //       const errors =
-    //         error.response
-    //           .data.errors;
-
-    //       const firstError =
-    //         Object.values(
-    //           errors
-    //         )[0] as string[];
-
-    //       setMessage(
-    //         firstError[0]
-    //       );
-
-    //     }
-
-    //     // メール重複
-    //     else if (
-    //       error.response
-    //         ?.status === 409
-    //     ) {
-
-    //       setMessage(
-    //         "このメールアドレスは既に使用されています"
-    //       );
-
-    //     }
-
-    //     else {
-
-    //       setMessage(
-    //         "登録に失敗しました"
-    //       );
-
-    //     }
-
-    //   }
-
-    //   else {
-
-    //     setMessage(
-    //       "通信エラーが発生しました"
-    //     );
-
-    //   }
-
-    // }
   };
 
   return (
