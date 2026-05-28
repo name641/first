@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  laravel-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+
+      - name: Copy .env
+        run: cp .env.example .env
+
+      - name: Install Composer
+        run: composer install
+
+      - name: Generate key
+        run: php artisan key:generate
+
+      - name: Run Laravel test
+        run: php artisan test
