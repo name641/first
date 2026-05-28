@@ -1,3 +1,4 @@
+//計算だけ　Utils関数
 export const getDeadlineColor = (
     deadline?: string | null
   ) => {

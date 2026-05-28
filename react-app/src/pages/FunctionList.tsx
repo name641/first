@@ -1,9 +1,12 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../css/FunctionList.css";
-import TaskCard from "../components/TaskCard";
-
-import { useEffect, useState } from "react";
+import Column from "../components/Column";
+import useTasks from "../hooks/useTasks";
+import useUser from "../hooks/useUser";
+import Header from "../components/Header";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import type { DragEndEvent } from "@dnd-kit/core";
 
 import {
   DndContext,
@@ -11,22 +14,15 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  useDroppable,
 } from "@dnd-kit/core";
 
-import type { DragEndEvent } from "@dnd-kit/core";
+import {
+  filterTasks,
+} from "../utils/filterTasks";
 
 import {
-  SortableContext,
-  // useSortable,
-  verticalListSortingStrategy,
-  arrayMove,
-} from "@dnd-kit/sortable";
-
-import type {
-  Task,
-  User,
-} from "../types/task";
+  reorderTasks,
+} from "../utils/dragAndDrop";
 
 const API_URL =
   import.meta.env.VITE_API_URL;
@@ -37,15 +33,6 @@ export default function Page() {
   const [deadlineFilter, setDeadlineFilter] =
     useState("all");
 
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [user, setUser] =
-    useState<User | null>(null);
-
-  const [error, setError] =
-    useState("");
-
-  const navigate = useNavigate();
-
   // ======================
   // DnD
   // ======================
@@ -54,191 +41,24 @@ export default function Page() {
     useSensor(PointerSensor)
   );
 
-  // // ======================
-  // // tasks取得
-  // // ======================
+  const navigate = useNavigate();
+  const {
+    tasks,
+    setTasks,
+    taskError,
+  } = useTasks(navigate);
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const token =
-          localStorage.getItem("token");
+  const {
+    user,
+    userError,
+  } = useUser(navigate);
 
-        const res = await fetch(
-          `${API_URL}/tasks`,
-          {
-            headers: {
-              "Content-Type":
-                "application/json",
-              Accept:
-                "application/json",
-              Authorization:
-                `Bearer ${token}`,
-            },
-          }
-        );
-
-        // ログイン切れ
-        if (
-          res.status === 401
-        ) {
-          localStorage.removeItem(
-            "token"
-          );
-
-          navigate("/");
-          return;
-        }
-
-        if (!res.ok)
-          throw new Error();
-
-        const data =
-          await res.json();
-
-        setTasks(data);
-
-      } catch {
-
-        setError(
-          "タスクの取得に失敗しました"
-        );
-
-      }
-    };
-
-    fetchTasks();
-
-  }, [navigate]);
-
-
-  // ======================
-  // user取得
-  // ======================
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token =
-          localStorage.getItem("token");
-
-        const res = await fetch(
-          `${API_URL}/me`,
-          {
-            headers: {
-              Authorization:
-                `Bearer ${token}`,
-            },
-          }
-        );
-
-        // ログイン切れ
-        if (
-          res.status === 401
-        ) {
-          localStorage.removeItem(
-            "token"
-          );
-
-          navigate("/");
-          return;
-        }
-
-        if (!res.ok)
-          throw new Error();
-
-        const data =
-          await res.json();
-
-        setUser(data);
-
-      } catch {
-
-        setError(
-          "ユーザー情報の取得に失敗しました"
-        );
-
-      }
-    };
-
-    fetchUser();
-
-  }, [navigate]);
-  // ======================
-  // filter
-  // ======================
-
-  const filteredTasks = tasks.filter(
-    (task) => {
-      const matchSearch =
-        task.title
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        task.description
-          .toLowerCase()
-          .includes(search.toLowerCase());
-
-      if (!matchSearch)
-        return false;
-
-      if (deadlineFilter === "all")
-        return true;
-
-      if (!task.deadline)
-        return false;
-
-      const today =
-        new Date();
-
-      const d = new Date(
-        task.deadline
-      );
-
-      today.setHours(
-        0,
-        0,
-        0,
-        0
-      );
-
-      d.setHours(
-        0,
-        0,
-        0,
-        0
-      );
-
-      const diff =
-        Math.ceil(
-          (d.getTime() -
-            today.getTime()) /
-          (1000 *
-            60 *
-            60 *
-            24)
-        );
-
-      if (
-        deadlineFilter ===
-        "overdue"
-      )
-        return diff < 0;
-
-      if (
-        deadlineFilter ===
-        "today"
-      )
-        return diff === 0;
-
-      if (
-        deadlineFilter ===
-        "future"
-      )
-        return diff > 0;
-
-      return true;
-    }
-  );
+  const filteredTasks =
+    filterTasks(
+      tasks,
+      search,
+      deadlineFilter
+    );
 
   const todoTasks =
     filteredTasks.filter(
@@ -271,67 +91,12 @@ export default function Page() {
     const activeId = Number(active.id);
     const overId = over.id;
 
-    const activeTask = tasks.find(
-      (t) => t.id === activeId
-    );
-
-    if (!activeTask) return;
-
-    let newStatus = activeTask.status;
-
-    // status取得
-    if (
-      overId === "todo" ||
-      overId === "doing" ||
-      overId === "done"
-    ) {
-      newStatus =
-        overId as Task["status"];
-    } else {
-      const overTask = tasks.find(
-        (t) => t.id === Number(overId)
+    const updatedTasks =
+      reorderTasks(
+        tasks,
+        activeId,
+        overId
       );
-
-      if (overTask) {
-        newStatus = overTask.status;
-      }
-    }
-
-    // status更新
-    let updatedTasks = tasks.map(
-      (task) =>
-        task.id === activeId
-          ? {
-            ...task,
-            status: newStatus,
-          }
-          : task
-    );
-
-    const oldIndex =
-      updatedTasks.findIndex(
-        (t) => t.id === activeId
-      );
-
-    let newIndex = oldIndex;
-
-    if (
-      overId !== "todo" &&
-      overId !== "doing" &&
-      overId !== "done"
-    ) {
-      newIndex =
-        updatedTasks.findIndex(
-          (t) =>
-            t.id === Number(overId)
-        );
-    }
-
-    updatedTasks = arrayMove(
-      updatedTasks,
-      oldIndex,
-      newIndex
-    );
 
     setTasks(updatedTasks);
 
@@ -393,147 +158,25 @@ export default function Page() {
       navigate("/");
     };
 
-  // ======================
-  // Column
-  // ======================
-
-  const Column = ({
-    title,
-    tasks,
-    color,
-    status,
-  }: {
-    title: string;
-    tasks: Task[];
-    color: string;
-    status:
-    | "todo"
-    | "doing"
-    | "done";
-  }) => {
-    const {
-      setNodeRef,
-      isOver,
-    } = useDroppable({
-      id: status,
-    });
-
-    return (
-      <div className="col-md-4">
-        <div
-          ref={setNodeRef}
-          className="p-3 rounded task-column"
-          style={{
-            background:
-              isOver
-                ? "#e9f2ff"
-                : "#f5f7fb",
-            transition: "0.2s",
-          }}
-        >
-          <h5 className="mb-3 d-flex align-items-center gap-2">
-            <span
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius:
-                  "50%",
-                background:
-                  color,
-              }}
-            />
-            {title} (
-            {tasks.length})
-          </h5>
-
-          <SortableContext
-            items={tasks.map(
-              (t) =>
-                t.id
-            )}
-            strategy={
-              verticalListSortingStrategy
-            }
-          >
-            {tasks.map(
-              (
-                task
-              ) => (
-                <TaskCard
-                  key={
-                    task.id
-                  }
-                  task={
-                    task
-                  }
-                />
-              )
-            )}
-          </SortableContext>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div
       className="d-flex  flex-wrap flex-column min-vh-100"
     >
-      {error && (
+      {(taskError || userError) && (
         <div
           role="alert"
           className="alert alert-danger m-3"
         >
-          {error}
+          {taskError || userError}
         </div>
       )}
-      <header
-        className="navbar navbar-dark py-4"
-        style={{ backgroundColor: "#1f2937" }}
-      >
-        <div className="container-fluid px-3 d-flex justify-content-between align-items-center">
-
-          <a
-            className="navbar-brand fw-bold m-0 cat-logo"
-            style={{ cursor: "pointer" }}
-            onClick={() => navigate("/functionlist")}
-          >
-            MyApp
-          </a>
-
-          <div className="d-flex align-items-center gap-3">
-
-            <div
-              className="d-flex align-items-center gap-2 px-2 py-1 rounded"
-              style={{
-                backgroundColor: "#374151",
-                cursor: "pointer"
-              }}
-              onClick={() => navigate("/profile")}
-            >
-              <i className="bi bi-person-circle" />
-              <span style={{ color: "white", fontSize: "18px" }}>
-                {user?.name}
-              </span>
-            </div>
-            <button
-              data-testid="header-new-task-button"
-              className="btn btn-success btn-sm"
-              onClick={goCreateTask}
-            >
-              + New Task
-            </button>
-            <button
-              data-testid="menu-button"
-              className="navbar-toggler"
-              onClick={() => setOpen(true)}
-            >
-              <span className="navbar-toggler-icon" />
-            </button>
-
-          </div>
-        </div>
-      </header>
+      <Header
+        userName={user?.name}
+        showNewTask
+        showMenu
+        onNewTask={goCreateTask}
+        onMenu={() => setOpen(true)}
+      />
 
       <div className="d-flex flex-column flex-md-row gap-2 p-3 bg-white border-bottom">
 
