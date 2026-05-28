@@ -73,6 +73,7 @@ export default function Header({
 
                     {showMenu && (
 <button
+  aria-label="menu-button"
   data-testid="menu-button"
   className="navbar-toggler"
   onClick={onMenu}
