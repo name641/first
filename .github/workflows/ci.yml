@@ -58,3 +58,54 @@ jobs:
       - name: Run React test
         working-directory: react-app
         run: npm test -- --run
+    
+  e2e-test:
+
+  runs-on: ubuntu-latest
+
+  steps:
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: 8.3
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
+    - name: Install Composer
+      working-directory: laravel
+      run: composer install
+
+    - name: Copy .env
+      working-directory: laravel
+      run: cp .env.example .env
+
+    - name: Generate key
+      working-directory: laravel
+      run: php artisan key:generate
+
+    - name: Install npm packages
+      working-directory: react-app
+      run: npm install
+
+    - name: Install Playwright browsers
+      working-directory: react-app
+      run: npx playwright install --with-deps
+
+    - name: Start Laravel
+      working-directory: laravel
+      run: php artisan serve --host=127.0.0.1 --port=8000 &
+      
+    - name: Start React
+      working-directory: react-app
+      run: npm run dev -- --host 127.0.0.1 &
+      
+    - name: Run Playwright
+      working-directory: react-app
+      run: npx playwright test
