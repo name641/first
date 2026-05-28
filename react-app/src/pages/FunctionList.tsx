@@ -1,6 +1,8 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../css/FunctionList.css";
-import TaskCard from "../components/TaskCard";
+// import TaskCard from "../components/TaskCard";
+import Column from "../components/Column";
+import useTasks from "../hooks/useTasks";
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -11,15 +13,15 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  useDroppable,
+  // useDroppable,
 } from "@dnd-kit/core";
 
 import type { DragEndEvent } from "@dnd-kit/core";
 
 import {
-  SortableContext,
-  // useSortable,
-  verticalListSortingStrategy,
+  // SortableContext,
+  // // useSortable,
+  // verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
 
@@ -37,14 +39,6 @@ export default function Page() {
   const [deadlineFilter, setDeadlineFilter] =
     useState("all");
 
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [user, setUser] =
-    useState<User | null>(null);
-
-  const [error, setError] =
-    useState("");
-
-  const navigate = useNavigate();
 
   // ======================
   // DnD
@@ -54,63 +48,76 @@ export default function Page() {
     useSensor(PointerSensor)
   );
 
+  // const [tasks, setTasks] = useState<Task[]>([]);
+  const [user, setUser] =
+    useState<User | null>(null);
+
+  const navigate = useNavigate();
+  const {
+    tasks,
+    setTasks,
+    taskError,
+  } = useTasks(navigate);
+
+  const [error, setError] =
+    useState("");
+
   // // ======================
   // // tasks取得
   // // ======================
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const token =
-          localStorage.getItem("token");
+  // useEffect(() => {
+  //   const fetchTasks = async () => {
+  //     try {
+  //       const token =
+  //         localStorage.getItem("token");
 
-        const res = await fetch(
-          `${API_URL}/tasks`,
-          {
-            headers: {
-              "Content-Type":
-                "application/json",
-              Accept:
-                "application/json",
-              Authorization:
-                `Bearer ${token}`,
-            },
-          }
-        );
+  //       const res = await fetch(
+  //         `${API_URL}/tasks`,
+  //         {
+  //           headers: {
+  //             "Content-Type":
+  //               "application/json",
+  //             Accept:
+  //               "application/json",
+  //             Authorization:
+  //               `Bearer ${token}`,
+  //           },
+  //         }
+  //       );
 
-        // ログイン切れ
-        if (
-          res.status === 401
-        ) {
-          localStorage.removeItem(
-            "token"
-          );
+  //       // ログイン切れ
+  //       if (
+  //         res.status === 401
+  //       ) {
+  //         localStorage.removeItem(
+  //           "token"
+  //         );
 
-          navigate("/");
-          return;
-        }
+  //         navigate("/");
+  //         return;
+  //       }
 
-        if (!res.ok)
-          throw new Error();
+  //       if (!res.ok)
+  //         throw new Error();
 
-        const data =
-          await res.json();
+  //       const data =
+  //         await res.json();
 
-        setTasks(data);
+  //       setTasks(data);
 
-      } catch {
+  //     } catch {
 
-        setError(
-          "タスクの取得に失敗しました"
-        );
+  //       setError(
+  //         "タスクの取得に失敗しました"
+  //       );
 
-      }
-    };
+  //     }
+  //   };
 
-    fetchTasks();
+  //   fetchTasks();
 
-  }, [navigate]);
-
+  // }, [navigate]);
 
   // ======================
   // user取得
@@ -397,94 +404,94 @@ export default function Page() {
   // Column
   // ======================
 
-  const Column = ({
-    title,
-    tasks,
-    color,
-    status,
-  }: {
-    title: string;
-    tasks: Task[];
-    color: string;
-    status:
-    | "todo"
-    | "doing"
-    | "done";
-  }) => {
-    const {
-      setNodeRef,
-      isOver,
-    } = useDroppable({
-      id: status,
-    });
+  // const Column = ({
+  //   title,
+  //   tasks,
+  //   color,
+  //   status,
+  // }: {
+  //   title: string;
+  //   tasks: Task[];
+  //   color: string;
+  //   status:
+  //   | "todo"
+  //   | "doing"
+  //   | "done";
+  // }) => {
+  //   const {
+  //     setNodeRef,
+  //     isOver,
+  //   } = useDroppable({
+  //     id: status,
+  //   });
 
-    return (
-      <div className="col-md-4">
-        <div
-          ref={setNodeRef}
-          className="p-3 rounded task-column"
-          style={{
-            background:
-              isOver
-                ? "#e9f2ff"
-                : "#f5f7fb",
-            transition: "0.2s",
-          }}
-        >
-          <h5 className="mb-3 d-flex align-items-center gap-2">
-            <span
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius:
-                  "50%",
-                background:
-                  color,
-              }}
-            />
-            {title} (
-            {tasks.length})
-          </h5>
+  //   return (
+  //     <div className="col-md-4">
+  //       <div
+  //         ref={setNodeRef}
+  //         className="p-3 rounded task-column"
+  //         style={{
+  //           background:
+  //             isOver
+  //               ? "#e9f2ff"
+  //               : "#f5f7fb",
+  //           transition: "0.2s",
+  //         }}
+  //       >
+  //         <h5 className="mb-3 d-flex align-items-center gap-2">
+  //           <span
+  //             style={{
+  //               width: 10,
+  //               height: 10,
+  //               borderRadius:
+  //                 "50%",
+  //               background:
+  //                 color,
+  //             }}
+  //           />
+  //           {title} (
+  //           {tasks.length})
+  //         </h5>
 
-          <SortableContext
-            items={tasks.map(
-              (t) =>
-                t.id
-            )}
-            strategy={
-              verticalListSortingStrategy
-            }
-          >
-            {tasks.map(
-              (
-                task
-              ) => (
-                <TaskCard
-                  key={
-                    task.id
-                  }
-                  task={
-                    task
-                  }
-                />
-              )
-            )}
-          </SortableContext>
-        </div>
-      </div>
-    );
-  };
+  //         <SortableContext
+  //           items={tasks.map(
+  //             (t) =>
+  //               t.id
+  //           )}
+  //           strategy={
+  //             verticalListSortingStrategy
+  //           }
+  //         >
+  //           {tasks.map(
+  //             (
+  //               task
+  //             ) => (
+  //               <TaskCard
+  //                 key={
+  //                   task.id
+  //                 }
+  //                 task={
+  //                   task
+  //                 }
+  //               />
+  //             )
+  //           )}
+  //         </SortableContext>
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
   return (
     <div
       className="d-flex  flex-wrap flex-column min-vh-100"
     >
-      {error && (
+      {taskError || error && (
         <div
           role="alert"
           className="alert alert-danger m-3"
         >
-          {error}
+          {taskError || error}
         </div>
       )}
       <header
