@@ -1,12 +1,13 @@
-
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 import { useState } from "react";
+import { loginUser } from "../services/auth";
+import { getLoginErrorMessage } from "../utils/loginError";
 import {
   useNavigate,
   Link,
 } from "react-router-dom";
-import axios from "axios";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap-icons/font/bootstrap-icons.css";
+
 
 const API_URL =
   import.meta.env.VITE_API_URL;
@@ -82,15 +83,11 @@ const Login = () => {
 
       try {
         const response =
-          await axios.post(
-            `${API_URL}/login`,
-            {
-              email:
-                trimmedEmail,
-              password,
-            }
+          await loginUser(
+            trimmedEmail,
+            password
           );
-
+          
         if (
           response.data
             ?.token
@@ -130,40 +127,11 @@ const Login = () => {
       } catch (
       err: unknown
       ) {
-        if (
-          axios.isAxiosError(
-            err
-          )
-        ) {
-          const status =
-            err.response
-              ?.status;
 
-          switch (
-          status
-          ) {
-            case 401:
-              setError(
-                "メールアドレスまたはパスワードが間違っています"
-              );
-              break;
+        setError(
+          getLoginErrorMessage(err)
+        );
 
-            case 500:
-              setError(
-                "サーバーエラーが発生しました"
-              );
-              break;
-
-            default:
-              setError(
-                "通信エラーが発生しました"
-              );
-          }
-        } else {
-          setError(
-            "予期しないエラーが発生しました"
-          );
-        }
       } finally {
         setLoading(
           false
@@ -325,8 +293,8 @@ const Login = () => {
                 >
                   <i
                     className={`bi ${showPassword
-                        ? "bi-eye-slash"
-                        : "bi-eye"
+                      ? "bi-eye-slash"
+                      : "bi-eye"
                       }`}
                   />
                 </button>

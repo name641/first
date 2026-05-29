@@ -1,8 +1,8 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate, Link } from "react-router-dom";
-import { registerUser } from "../api/auth";
+import { registerUser } from "../services/auth";
 import { useState } from "react";
-import { getErrorMessage } from "../utils/getErrorMessage";
+import { getCreateErrorMessage } from "../utils/createError";
 
 
 const Ce = () => {
@@ -42,11 +42,12 @@ const Ce = () => {
         navigate("/");
       }, 1000);
 
-     } catch (error) {
-      setMessage( getErrorMessage(error) ); 
-     }
-  };
-
+    } catch (error) {
+      setMessage(
+        getCreateErrorMessage(error)
+      );
+    }
+  }
   return (
     <div
       className="d-flex justify-content-center align-items-center vh-100"
@@ -200,8 +201,8 @@ const Ce = () => {
                 className={`alert mt-3 ${message.includes(
                   "成功"
                 )
-                    ? "alert-success"
-                    : "alert-danger"
+                  ? "alert-success"
+                  : "alert-danger"
                   }`}
               >
                 {message}
