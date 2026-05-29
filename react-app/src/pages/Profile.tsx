@@ -215,13 +215,7 @@ export default function Profile() {
                   >
                     Delete Account
                   </button>
-                  {/* <button
-                    className="btn btn-danger"
-                    onClick={handleDelete}
-                  >
-                    Delete Account
-                  </button> */}
-
+                  
                   <button
                     data-testid="update-btn"
                     className="btn btn-primary px-4"

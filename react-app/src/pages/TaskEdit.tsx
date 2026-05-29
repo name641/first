@@ -1,142 +1,253 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import Header from "../components/Header";
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 
-const API_URL =
-  import.meta.env.VITE_API_URL;
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  useNavigate,
+  useParams,
+} from "react-router-dom";
+
+import {
+  getMe,
+  getTask,
+  updateTask,
+  deleteTask,
+} from "../services/task";
+
+import {
+  getTaskEditErrorMessage,
+} from "../utils/taskCreateError";
+
 type User = {
   name: string;
 };
 
 const TaskEdit = () => {
-  const navigate = useNavigate();
-  const { id } = useParams();
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [deadline, setDeadline] = useState<string>("");
-  const [status, setStatus] = useState<"todo" | "doing" | "done">("todo");
+  const navigate =
+    useNavigate();
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [open, setOpen] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const { id } =
+    useParams();
 
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteText, setDeleteText] = useState("");
+  const [title, setTitle] =
+    useState("");
+
+  const [
+    description,
+    setDescription,
+  ] = useState("");
+
+  const [
+    deadline,
+    setDeadline,
+  ] = useState<string>("");
+
+  const [
+    status,
+    setStatus,
+  ] = useState<
+    "todo"
+    | "doing"
+    | "done"
+  >("todo");
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  const [open, setOpen] =
+    useState(false);
+
+  const [user, setUser] =
+    useState<User | null>(
+      null
+    );
+
+  const [
+    showDeleteModal,
+    setShowDeleteModal,
+  ] = useState(false);
+
+  const [
+    deleteText,
+    setDeleteText,
+  ] = useState("");
 
   // ======================
   // user取得
   // ======================
   useEffect(() => {
-    const token = localStorage.getItem("token");
 
-    fetch(`${API_URL}/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => {
-        if (!res.ok)
-          throw new Error()
+    const fetchUser =
+      async () => {
 
-        return res.json()
-      })
-      .then((data) =>
-        setUser(data)
-      )
-      .catch(() =>
-        setError(
-          'ユーザー取得失敗'
-        )
-      )
+        try {
+
+          const data =
+            await getMe();
+
+          setUser(data);
+
+        } catch (error) {
+
+          setError(
+            getTaskEditErrorMessage(
+              "fetch",
+              error
+            )
+          );
+        }
+      };
+
+    fetchUser();
+
   }, []);
 
   // ======================
   // task取得
   // ======================
   useEffect(() => {
-    const token = localStorage.getItem("token");
 
-    fetch(`${API_URL}/tasks/${id}`, {
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error();
-        return res.json();
-      })
-      .then((data) => {
-        setTitle(data.title);
-        setDescription(data.description);
-        setDeadline(data.deadline || "");
-        setStatus(data.status || "todo"); // ★追加
-      })
-      .catch(() => setError("取得失敗"))
-      .finally(() => setLoading(false));
+    const fetchTask =
+      async () => {
+
+        try {
+
+          if (!id) {
+            return;
+          }
+
+          const data =
+            await getTask(id);
+
+          setTitle(
+            data.title
+          );
+
+          setDescription(
+            data.description
+          );
+
+          setDeadline(
+            data.deadline || ""
+          );
+
+          setStatus(
+            data.status ||
+            "todo"
+          );
+
+        } catch (error) {
+
+          setError(
+            getTaskEditErrorMessage(
+              "fetch",
+              error
+            )
+          );
+
+        } finally {
+
+          setLoading(
+            false
+          );
+        }
+      };
+
+    fetchTask();
+
   }, [id]);
 
   // ======================
   // update
   // ======================
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUpdate =
+    async (
+      e: React.FormEvent
+    ) => {
 
-    const token = localStorage.getItem("token");
+      e.preventDefault();
 
-    const res = await fetch(`${API_URL}/tasks/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        title,
-        description,
-        deadline: deadline || null,
-        status, // ★追加
-      }),
-    });
+      try {
 
-    if (res.ok) {
-      navigate("/functionlist");
-    } else {
-      setError("更新失敗");
-    }
-  };
+        if (!id) {
+          return;
+        }
+
+        await updateTask(
+          id,
+          {
+            title,
+            description,
+            deadline:
+              deadline ||
+              null,
+            status,
+          }
+        );
+
+        navigate(
+          "/functionlist"
+        );
+
+      } catch (error) {
+
+        setError(
+          getTaskEditErrorMessage(
+            "update",
+            error
+          )
+        );
+      }
+    };
 
   // ======================
   // delete
   // ======================
-  const handleDelete = async () => {
-    const token =
-      localStorage.getItem("token");
+  const handleDelete =
+    async () => {
 
-    const res = await fetch(
-      `${API_URL}/tasks/${id}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization:
-            `Bearer ${token}`,
-        },
+      try {
+
+        if (!id) {
+          return;
+        }
+
+        await deleteTask(id);
+
+        navigate(
+          "/functionlist"
+        );
+
+      } catch (error) {
+
+        setError(
+          getTaskEditErrorMessage(
+            "delete",
+            error
+          )
+        );
       }
-    );
+    };
 
-    if (res.ok) {
-      navigate("/functionlist");
-    } else {
-      setError("削除失敗");
-    }
-  };
+  const handleLogout =
+    () => {
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  };
+      localStorage.removeItem(
+        "token"
+      );
+
+      navigate("/");
+    };
 
   if (loading) {
     return (
