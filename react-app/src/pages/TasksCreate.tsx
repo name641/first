@@ -2,9 +2,9 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Header from "../components/Header";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getMe } from "../services/user";
+import { createTask } from "../services/task";
 
-const API_URL =
-  import.meta.env.VITE_API_URL;
 type User = {
   name: string;
 };
@@ -30,26 +30,11 @@ const TasksCreate = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    if (!token) {
-      console.log("tokenなし");
-      return;
-    }
+    if (!token) return;
 
-    fetch(`${API_URL}/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-    })
+    getMe(token)
       .then((res) => {
-        if (!res.ok) {
-          throw new Error("auth error");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        console.log("user:", data);
-        setUser(data);
+        setUser(res.data);
       })
       .catch((err) => {
         console.error("me API error:", err);
@@ -115,22 +100,17 @@ const TasksCreate = () => {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch(`${API_URL}/tasks`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      if (!token) throw new Error("no token");
+
+      await createTask(
+        {
           title,
           description,
           deadline: deadline || null,
           status,
-        }),
-      });
-
-      if (!response.ok) throw new Error();
+        },
+        token
+      );
 
       navigate("/functionlist");
     } catch {

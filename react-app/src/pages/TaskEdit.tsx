@@ -1,10 +1,14 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import Header from "../components/Header";
+import { getMe } from "../services/user";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  getTaskById,
+  updateTask,
+  deleteTask,
+} from "../services/task";
 
-const API_URL =
-  import.meta.env.VITE_API_URL;
 type User = {
   name: string;
 };
@@ -32,25 +36,18 @@ const TaskEdit = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    fetch(`${API_URL}/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => {
-        if (!res.ok)
-          throw new Error()
+    if (!token) {
+      setError("トークンがありません");
+      return;
+    }
 
-        return res.json()
+    getMe(token)
+      .then((res) => {
+        setUser(res.data);
       })
-      .then((data) =>
-        setUser(data)
-      )
-      .catch(() =>
-        setError(
-          'ユーザー取得失敗'
-        )
-      )
+      .catch(() => {
+        setError("ユーザー取得失敗");
+      });
   }, []);
 
   // ======================
@@ -58,22 +55,15 @@ const TaskEdit = () => {
   // ======================
   useEffect(() => {
     const token = localStorage.getItem("token");
+    if (!token || !id) return;
 
-    fetch(`${API_URL}/tasks/${id}`, {
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    getTaskById(id, token)
       .then((res) => {
-        if (!res.ok) throw new Error();
-        return res.json();
-      })
-      .then((data) => {
+        const data = res.data;
         setTitle(data.title);
         setDescription(data.description);
         setDeadline(data.deadline || "");
-        setStatus(data.status || "todo"); // ★追加
+        setStatus(data.status || "todo");
       })
       .catch(() => setError("取得失敗"))
       .finally(() => setLoading(false));
@@ -86,24 +76,22 @@ const TaskEdit = () => {
     e.preventDefault();
 
     const token = localStorage.getItem("token");
+    if (!token || !id) return;
 
-    const res = await fetch(`${API_URL}/tasks/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        title,
-        description,
-        deadline: deadline || null,
-        status, // ★追加
-      }),
-    });
+    try {
+      await updateTask(
+        id,
+        {
+          title,
+          description,
+          deadline: deadline || null,
+          status,
+        },
+        token
+      );
 
-    if (res.ok) {
       navigate("/functionlist");
-    } else {
+    } catch {
       setError("更新失敗");
     }
   };
@@ -112,23 +100,13 @@ const TaskEdit = () => {
   // delete
   // ======================
   const handleDelete = async () => {
-    const token =
-      localStorage.getItem("token");
+    const token = localStorage.getItem("token");
+    if (!token || !id) return;
 
-    const res = await fetch(
-      `${API_URL}/tasks/${id}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization:
-            `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (res.ok) {
+    try {
+      await deleteTask(id, token);
       navigate("/functionlist");
-    } else {
+    } catch {
       setError("削除失敗");
     }
   };

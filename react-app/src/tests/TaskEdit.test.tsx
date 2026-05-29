@@ -8,7 +8,8 @@ import {
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import TaskEdit from '../pages/TaskEdit'
-
+import * as userApi from '../services/user';
+import * as taskApi from '../services/task';
 // navigateモック
 const mockNavigate = vi.fn()
 
@@ -29,7 +30,6 @@ vi.mock(
 )
 
 // fetchモック
-globalThis.fetch = vi.fn()
 
 const mockTask = {
     id: 1,
@@ -72,43 +72,27 @@ describe(
                 'fake-token'
             )
 
-            vi.mocked(
-                globalThis.fetch
-            ).mockImplementation(
-                async (input) => {
+            // user API（/me）
+            vi.spyOn(userApi, 'getMe').mockResolvedValue({
+                data: { name: 'test user' }
+            } as any)
 
-                    const url =
-                        String(input)
+            // task取得
+            vi.spyOn(taskApi, 'getTaskById').mockResolvedValue({
+                data: mockTask
+            } as any)
 
-                    // user
-                    if (
-                        url.includes('/me')
-                    ) {
-                        return {
-                            ok: true,
-                            json: async () => ({
-                                name: 'test user'
-                            })
-                        } as Response
-                    }
+            // update
+            vi.spyOn(taskApi, 'updateTask').mockResolvedValue({
+                data: {}
+            } as any)
 
-                    // task取得
-                    if (
-                        url.includes('/tasks/1')
-                    ) {
-                        return {
-                            ok: true,
-                            json: async () =>
-                                mockTask
-                        } as Response
-                    }
-
-                    return {
-                        ok: true
-                    } as Response
-                }
-            )
+            // delete
+            vi.spyOn(taskApi, 'deleteTask').mockResolvedValue({
+                data: {}
+            } as any)
         })
+
 
         test(
             '初期表示',
@@ -183,66 +167,20 @@ describe(
                 const user =
                     userEvent.setup()
 
-                vi.mocked(
-                    globalThis.fetch
-                ).mockImplementation(
-                    async (input, init) => {
-
-                        const url =
-                            String(input)
-
-                        if (
-                            init?.method ===
-                            'PUT'
-                        ) {
-                            return {
-                                ok: false
-                            } as Response
-                        }
-
-                        if (
-                            url.includes('/me')
-                        ) {
-                            return {
-                                ok: true,
-                                json: async () => ({
-                                    name: 'test'
-                                })
-                            } as Response
-                        }
-
-                        return {
-                            ok: true,
-                            json: async () =>
-                                mockTask
-                        } as Response
-                    }
-                )
+                vi.spyOn(taskApi, 'updateTask').mockRejectedValueOnce(new Error())
 
                 renderTaskEdit()
 
-                await screen.findByDisplayValue(
-                    'Laravel勉強'
-                )
+                await screen.findByDisplayValue('Laravel勉強')
 
                 await user.click(
-                    screen.getByRole(
-                        'button',
-                        {
-                            name: /Update/i
-                        }
-                    )
+                    screen.getByRole('button', { name: /Update/i })
                 )
 
                 expect(
-                    await screen.findByText(
-                        '更新失敗'
-                    )
+                    await screen.findByText('更新失敗')
                 ).toBeInTheDocument()
-
-            }
-        )
-
+            })
         test(
             '削除成功',
             async () => {
@@ -290,58 +228,15 @@ describe(
             }
         )
 
-        test(
-            '取得失敗',
-            async () => {
+        test('取得失敗', async () => {
+            vi.spyOn(taskApi, 'getTaskById').mockRejectedValueOnce(new Error())
 
-                vi.mocked(
-                    globalThis.fetch
-                ).mockImplementation(
-                    async (input) => {
+            renderTaskEdit()
 
-                        const url =
-                            String(input)
-
-                        // me成功
-                        if (
-                            url.includes('/me')
-                        ) {
-                            return {
-                                ok: true,
-                                json: async () => ({
-                                    name: 'test'
-                                })
-                            } as Response
-                        }
-
-                        // task失敗
-                        if (
-                            url.includes('/tasks/')
-                        ) {
-                            return {
-                                ok: false
-                            } as Response
-                        }
-
-                        throw new Error()
-                    }
-                )
-
-                renderTaskEdit()
-
-                await waitFor(
-                    () => {
-                        expect(
-                            screen.getByText(
-                                '取得失敗'
-                            )
-                        ).toBeInTheDocument()
-                    }
-                )
-
-            }
-        )
-
+            await waitFor(() => {
+                expect(screen.getByText('取得失敗')).toBeInTheDocument()
+            })
+        })
         test(
             'Back押下で一覧へ戻る',
             async () => {
@@ -432,146 +327,48 @@ describe(
                 const user =
                     userEvent.setup()
 
-                vi.mocked(
-                    globalThis.fetch
-                ).mockImplementation(
-                    async (input, init) => {
-
-                        const url =
-                            String(input)
-
-                        // user取得
-                        if (
-                            url.includes('/me')
-                        ) {
-                            return {
-                                ok: true,
-                                json: async () => ({
-                                    name: 'test user'
-                                })
-                            } as Response
-                        }
-
-                        // task取得
-                        if (
-                            url.includes('/tasks/1')
-                            && !init?.method
-                        ) {
-                            return {
-                                ok: true,
-                                json: async () =>
-                                    mockTask
-                            } as Response
-                        }
-
-                        // delete失敗
-                        if (
-                            init?.method ===
-                            'DELETE'
-                        ) {
-                            return {
-                                ok: false
-                            } as Response
-                        }
-
-                        throw new Error()
-                    }
-                )
+                vi.spyOn(taskApi, 'deleteTask').mockRejectedValueOnce(new Error())
 
                 renderTaskEdit()
 
-                await screen.findByDisplayValue(
-                    'Laravel勉強'
-                )
+                await screen.findByDisplayValue('Laravel勉強')
 
-                // モーダル表示
-                await user.click(
-                    screen.getByRole(
-                        'button',
-                        {
-                            name: /Delete/i
-                        }
-                    )
-                )
-
-                // DELETE入力
-                await user.type(
-                    screen.getByPlaceholderText(
-                        'DELETE'
-                    ),
-                    'DELETE'
-                )
-
-                // 削除実行
-                await user.click(
-                    screen.getByRole(
-                        'button',
-                        {
-                            name: '削除'
-                        }
-                    )
-                )
+                await user.click(screen.getByRole('button', { name: /Delete/i }))
+                await user.type(screen.getByPlaceholderText('DELETE'), 'DELETE')
+                await user.click(screen.getByRole('button', { name: '削除' }))
 
                 expect(
-                    await screen.findByText(
-                        '削除失敗'
-                    )
+                    await screen.findByText('削除失敗')
                 ).toBeInTheDocument()
+            })
 
-            }
-        )
+        test('status変更して更新できる', async () => {
+            const user = userEvent.setup()
 
-        test(
-            'status変更して更新できる',
-            async () => {
+            renderTaskEdit()
 
-                const user =
-                    userEvent.setup()
+            await screen.findByDisplayValue('Laravel勉強')
 
-                renderTaskEdit()
+            const updateSpy = vi.spyOn(taskApi, 'updateTask')
 
-                await screen.findByDisplayValue(
-                    'Laravel勉強'
-                )
+            await user.selectOptions(
+                screen.getByRole('combobox'),
+                'doing'
+            )
 
-                const fetchSpy =
-                    vi.mocked(
-                        globalThis.fetch
-                    )
+            await user.click(
+                screen.getByRole('button', { name: /Update/i })
+            )
 
-                // status変更
-                await user.selectOptions(
-                    screen.getByRole(
-                        'combobox'
-                    ),
-                    'doing'
-                )
-
-                // 更新
-                await user.click(
-                    screen.getByRole(
-                        'button',
-                        {
-                            name: /Update/i
-                        }
-                    )
-                )
-
-                expect(
-                    fetchSpy
-                ).toHaveBeenCalledWith(
-                    expect.stringContaining(
-                        '/tasks/1'
-                    ),
-                    expect.objectContaining({
-                        method: 'PUT',
-                        body: expect.stringContaining(
-                            '"status":"doing"'
-                        )
-                    })
-                )
-
-            }
-        )
-    }
-)
+            // =========================
+            // 呼び出し検証（正しい形）
+            // =========================
+            expect(updateSpy).toHaveBeenCalledWith(
+                '1', // task id（URL /taskedit/1 から）
+                expect.objectContaining({
+                    status: 'doing'
+                }),
+                'fake-token' // localStorageのtoken
+            )
+        })
+    })

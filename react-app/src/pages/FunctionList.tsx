@@ -7,7 +7,7 @@ import Header from "../components/Header";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { DragEndEvent } from "@dnd-kit/core";
-
+import { reorderTask } from "../services/task";
 import {
   DndContext,
   closestCenter,
@@ -23,9 +23,6 @@ import {
 import {
   reorderTasks,
 } from "../utils/dragAndDrop";
-
-const API_URL =
-  import.meta.env.VITE_API_URL;
 
 export default function Page() {
   const [open, setOpen] = useState(false);
@@ -106,35 +103,23 @@ export default function Page() {
         localStorage.getItem("token");
 
       const payload =
-        updatedTasks.map(
-          (task) => ({
-            id: task.id,
-            status: task.status,
-            order:
-              updatedTasks
-                .filter(
-                  t =>
-                    t.status === task.status
-                )
-                .findIndex(
-                  t =>
-                    t.id === task.id
-                )
-          }))
-      await fetch(
-        `${API_URL}/tasks/reorder`,
-        {
-          method: "PUT", // ← POSTから変更
-          headers: {
-            "Content-Type":
-              "application/json",
-            Authorization:
-              `Bearer ${token}`,
-          },
-          body: JSON.stringify(
-            payload
-          ),
-        }
+        updatedTasks.map((task) => ({
+          id: Number(task.id),
+          status: task.status,
+          order:
+            updatedTasks
+              .filter(
+                (t) =>
+                  t.status === task.status
+              )
+              .findIndex(
+                (t) =>
+                  t.id === task.id
+              ),
+        }));
+      await reorderTask(
+        payload,
+        token || ""
       );
     } catch (err) {
       console.error(

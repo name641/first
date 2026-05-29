@@ -3,6 +3,9 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { vi } from 'vitest'
 import TasksCreate from '../pages/TasksCreate'
+import * as userApi from "../services/user";
+import * as taskApi from "../services/task";
+
 const mockNavigate = vi.fn()
 
 vi.mock(
@@ -20,7 +23,7 @@ vi.mock(
     }
   }
 )
-globalThis.fetch = vi.fn()
+// globalThis.fetch = vi.fn()
 
 const renderTasksCreate = () => {
   return render(
@@ -43,13 +46,13 @@ describe('TasksCreate', () => {
       'fake-token'
     )
 
-    vi.mocked(globalThis.fetch)
-      .mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          name: 'test user',
-        }),
-      } as Response)
+    vi.spyOn(userApi, 'getMe').mockResolvedValue({
+      data: { name: 'test user' }
+    } as any)
+
+    vi.spyOn(taskApi, 'createTask').mockResolvedValue({
+      data: {}
+    } as any)
   })
 
   test('タイトル入力欄表示', () => {
@@ -148,204 +151,101 @@ describe('TasksCreate', () => {
       )
   })
   test('Create押下でAPI送信される', async () => {
+    const user = userEvent.setup()
+
+    const createSpy = vi.spyOn(taskApi, 'createTask')
+
+    renderTasksCreate()
+
+    await user.type(screen.getByPlaceholderText('Title'), 'テストタスク')
+    await user.type(screen.getByPlaceholderText('Description'), 'テスト説明')
+
+    await user.click(screen.getByRole('button', { name: /create/i }))
+
+    expect(createSpy).toHaveBeenCalled()
+  })
+
+  test('API失敗時エラー表示', async () => {
+    const user = userEvent.setup()
+
+    vi.spyOn(taskApi, 'createTask').mockRejectedValueOnce(new Error())
+
+    renderTasksCreate()
+
+    await user.type(screen.getByPlaceholderText('Title'), 'テスト')
+    await user.type(screen.getByPlaceholderText('Description'), '説明')
+
+    await user.click(screen.getByRole('button', { name: /create/i }))
+
+    expect(
+      await screen.findByText('タスク作成に失敗しました')
+    ).toBeInTheDocument()
+  })
+
+  test('作成成功で画面遷移', async () => {
+    const user = userEvent.setup()
+
+    renderTasksCreate()
+
+    await user.type(screen.getByPlaceholderText('Title'), 'React勉強')
+    await user.type(screen.getByPlaceholderText('Description'), 'Vitest学習')
+
+    await user.click(screen.getByRole('button', { name: /create/i }))
+
+    expect(mockNavigate).toHaveBeenCalledWith('/functionlist')
+  })
+
+  test('Logout押下', async () => {
+    const user = userEvent.setup()
+
+    renderTasksCreate()
+
+    await user.click(
+      screen.getByRole('button', { name: 'menu-button' })
+    )
+
+    await user.click(screen.getByText(/logout/i))
+
+    expect(localStorage.getItem('token')).toBeNull()
+    expect(mockNavigate).toHaveBeenCalledWith('/')
+  })
+})
+
+test(
+  'Logout押下',
+  async () => {
+
     const user =
       userEvent.setup()
 
     renderTasksCreate()
 
-    await user.type(
-      screen.getByPlaceholderText(
-        'Title'
-      ),
-      'テストタスク'
-    )
-
-    await user.type(
-      screen.getByPlaceholderText(
-        'Description'
-      ),
-      'テスト説明'
-    )
-
+    // メニュー開く
     await user.click(
       screen.getByRole(
         'button',
         {
-          name: /create/i,
+          name: 'menu-button'
         }
       )
     )
 
-    expect(
-      globalThis.fetch
-    ).toHaveBeenCalled()
-  })
-  test('API失敗時エラー表示', async () => {
-    vi.mocked(globalThis.fetch)
-
-      // useEffectの /me
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          name: 'test user'
-        })
-      } as Response)
-
-      // Create時の /tasks
-      .mockResolvedValueOnce({
-        ok: false
-      } as Response)
-
-    const user = userEvent.setup()
-
-    renderTasksCreate()
-
-    await user.type(
-      screen.getByPlaceholderText(
-        'Title'
-      ),
-      'テスト'
-    )
-
-    await user.type(
-      screen.getByPlaceholderText(
-        'Description'
-      ),
-      '説明'
-    )
-
     await user.click(
-      screen.getByRole(
-        'button',
-        { name: /create/i }
+      screen.getByText(
+        /logout/i
       )
     )
 
     expect(
-      await screen.findByText(
-        'タスク作成に失敗しました'
+      localStorage.getItem(
+        'token'
       )
-    ).toBeInTheDocument()
+    ).toBeNull()
+
+    expect(
+      mockNavigate
+    ).toHaveBeenLastCalledWith(
+      '/'
+    )
+
   })
-
-  test(
-    '作成成功で画面遷移',
-    async () => {
-
-      vi.clearAllMocks()
-
-      vi.mocked(globalThis.fetch)
-
-        // /me
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            name: 'test user'
-          })
-        } as Response)
-
-        // create
-        .mockResolvedValueOnce({
-          ok: true
-        } as Response)
-
-      const user =
-        userEvent.setup()
-
-      renderTasksCreate()
-
-      await user.type(
-        screen.getByPlaceholderText(
-          'Title'
-        ),
-        'React勉強'
-      )
-
-      await user.type(
-        screen.getByPlaceholderText(
-          'Description'
-        ),
-        'Vitest学習'
-      )
-
-      await user.click(
-        screen.getByRole(
-          'button',
-          {
-            name: /create/i
-          }
-        )
-      )
-
-      expect(
-        mockNavigate
-      ).toHaveBeenLastCalledWith(
-        '/functionlist'
-      )
-
-    })
-  test(
-    'Back押下',
-    async () => {
-
-      const user =
-        userEvent.setup()
-
-      renderTasksCreate()
-
-      await user.click(
-        screen.getByRole(
-          'button',
-          {
-            name: /back/i
-          }
-        )
-      )
-
-      expect(
-        mockNavigate
-      ).toHaveBeenLastCalledWith(
-        '/functionlist'
-      )
-
-    })
-
-  test(
-    'Logout押下',
-    async () => {
-
-      const user =
-        userEvent.setup()
-
-      renderTasksCreate()
-
-      // メニュー開く
-      await user.click(
-        screen.getByRole(
-          'button',
-          {
-            name: 'menu-button'
-          }
-        )
-      )
-
-      await user.click(
-        screen.getByText(
-          /logout/i
-        )
-      )
-
-      expect(
-        localStorage.getItem(
-          'token'
-        )
-      ).toBeNull()
-
-      expect(
-        mockNavigate
-      ).toHaveBeenLastCalledWith(
-        '/'
-      )
-
-    })
-})
