@@ -31,6 +31,8 @@ export const getCreateErrorMessage = (
                     )[0];
 
                 return firstError[0];
+            case 500:
+                return "登録に失敗しました";
         }
     }
 

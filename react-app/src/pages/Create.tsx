@@ -5,7 +5,7 @@ import { useState } from "react";
 import { getCreateErrorMessage } from "../utils/createError";
 
 
-const Ce = () => {
+const Create = () => {
   const navigate = useNavigate();
 
   const [name, setName] =
@@ -251,4 +251,4 @@ const Ce = () => {
   );
 };
 
-export default Ce;
+export default Create;
