@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { vi } from 'vitest'
 import axios from 'axios'
-import Ce from '../pages/Create'
+import Create from '../pages/Create'
 
 const mockNavigate = vi.fn()
 
@@ -28,7 +28,7 @@ vi.mock('axios')
 const renderCe = () => {
     return render(
         <MemoryRouter>
-            <Ce />
+            <Create />
         </MemoryRouter>
     )
 }
