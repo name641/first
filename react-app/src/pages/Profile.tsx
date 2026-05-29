@@ -1,9 +1,11 @@
 import Header from "../components/Header";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const API_URL =
-  import.meta.env.VITE_API_URL;
+import {
+  getMe,
+  updateProfile,
+  deleteProfile,
+} from "../services/user";
 
 type User = {
   id: number;
@@ -27,63 +29,43 @@ export default function Profile() {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    fetch(`${API_URL}/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    if (!token) return;
+
+    getMe(token)
       .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch user");
-        return res.json();
-      })
-      .then((data: User) => {
+        const data = res.data;
         setUser(data);
         setName(data.name);
         setEmail(data.email);
       })
-      .catch((err) => console.error(err));
+      .catch(console.error);
   }, []);
 
   // ✏️ update
   const handleUpdate = async () => {
     const token = localStorage.getItem("token");
+    if (!token) return;
 
-    await fetch(`${API_URL}/profile`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
+    await updateProfile(
+      {
         name,
         email,
         password: password ? password : null,
-      }),
-    });
+      },
+      token
+    );
 
     alert("更新しました");
   };
 
   // 🗑 delete
   const handleDelete = async () => {
-    const token =
-      localStorage.getItem("token");
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-    await fetch(
-      `${API_URL}/profile`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization:
-            `Bearer ${token}`,
-        },
-      }
-    );
+    await deleteProfile(token);
 
-    localStorage.removeItem(
-      "token"
-    );
-
+    localStorage.removeItem("token");
     navigate("/");
   };
 

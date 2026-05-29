@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { vi } from 'vitest'
 import Profile from '../pages/Profile'
-
+import axios from 'axios'
 const mockNavigate = vi.fn()
 
 vi.mock(
@@ -22,7 +22,8 @@ vi.mock(
     }
 )
 
-globalThis.fetch = vi.fn()
+vi.mock('axios')
+const mockedAxios = vi.mocked(axios)
 
 const mockUser = {
     id: 1,
@@ -54,13 +55,13 @@ describe(
                 'fake-token'
             )
 
-            vi.mocked(
-                globalThis.fetch
-            ).mockResolvedValue({
-                ok: true,
-                json: async () =>
-                    mockUser
-            } as Response)
+            mockedAxios.get.mockResolvedValue({
+                data: mockUser,
+            } as any)
+
+            // 👇 その他APIモック
+            mockedAxios.put.mockResolvedValue({})
+            mockedAxios.delete.mockResolvedValue({})
         })
 
         test(
@@ -171,7 +172,7 @@ describe(
                 )
 
                 expect(
-                    globalThis.fetch
+                    mockedAxios.put
                 ).toHaveBeenCalled()
 
             }
