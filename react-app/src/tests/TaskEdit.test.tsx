@@ -591,6 +591,29 @@ import userEvent
     from "@testing-library/user-event";
 
 import { vi } from "vitest";
+
+
+// axios mock
+vi.mock(
+    "../lib/axios",
+    () => ({
+        default: {
+            get: vi.fn(),
+            put: vi.fn(),
+            delete: vi.fn(),
+
+            interceptors: {
+                request: {
+                    use: vi.fn(),
+                },
+
+                response: {
+                    use: vi.fn(),
+                },
+            },
+        },
+    })
+);
 // navigateモック
 const mockNavigate =
     vi.fn();
