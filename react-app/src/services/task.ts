@@ -37,27 +37,30 @@ export const getTask = async (
 // ======================
 // update
 // ======================
-export const updateTask =
-    async (
-        id: string,
-        body: object
-    ) => {
+export const updateTask = async (
+    id: string,
+    body: object
+) => {
 
-        return api.put(
+    const response =
+        await api.put(
             `/tasks/${id}`,
             body,
         );
-    };
 
+    return response.data;
+};
 // ======================
 // delete
 // ======================
-export const deleteTask =
-    async (
-        id: string,
-    ) => {
+export const deleteTask = async (
+    id: string,
+) => {
 
-        return api.delete(
+    const response =
+        await api.delete(
             `/tasks/${id}`,
         );
-    };
+
+    return response.data;
+};
