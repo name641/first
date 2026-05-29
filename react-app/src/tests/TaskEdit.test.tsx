@@ -856,6 +856,10 @@ describe(
 
                 vi.mocked(
                     taskService.getTask
+                ).mockReset();
+
+                vi.mocked(
+                    taskService.getTask
                 ).mockRejectedValueOnce(
                     new Error()
                 );
@@ -863,10 +867,11 @@ describe(
                 renderTaskEdit();
 
                 expect(
-                    screen.getByText(
+                    await screen.findByText(
                         "取得失敗"
                     )
                 ).toBeInTheDocument();
+
             }
         );
 
