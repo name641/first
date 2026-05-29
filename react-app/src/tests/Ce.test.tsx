@@ -1,156 +1,205 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
-import { vi } from 'vitest'
-import axios from 'axios'
-import Create from '../pages/Create'
+import { vi } from "vitest";
 
-const mockNavigate = vi.fn()
+// ======================
+// axios mock
+// ======================
+vi.mock("axios", () => {
+
+    const mockApi = {
+        get: vi.fn(),
+        post: vi.fn(),
+        put: vi.fn(),
+        delete: vi.fn(),
+
+        interceptors: {
+            request: {
+                use: vi.fn(),
+            },
+
+            response: {
+                use: vi.fn(),
+            },
+        },
+    };
+
+    return {
+        default: {
+            create: vi.fn(() => mockApi),
+
+            post: vi.fn(),
+
+            isAxiosError: vi.fn(),
+        },
+    };
+});
+
+import {
+    render,
+    screen,
+} from "@testing-library/react";
+
+import userEvent
+    from "@testing-library/user-event";
+
+import {
+    MemoryRouter,
+} from "react-router-dom";
+
+import axios
+    from "axios";
+
+import Create
+    from "../pages/Create";
+
+// ======================
+// navigate mock
+// ======================
+const mockNavigate =
+    vi.fn();
 
 vi.mock(
-    'react-router-dom',
+    "react-router-dom",
     async () => {
+
         const actual =
             await vi.importActual(
-                'react-router-dom'
-            )
+                "react-router-dom"
+            );
 
         return {
             ...actual,
-            useNavigate: () =>
-                mockNavigate,
-        }
+
+            useNavigate:
+                () => mockNavigate,
+        };
     }
-)
+);
 
-vi.mock('axios')
+const renderCe =
+    () => {
 
-const renderCe = () => {
-    return render(
-        <MemoryRouter>
-            <Create />
-        </MemoryRouter>
-    )
-}
+        return render(
+            <MemoryRouter>
+                <Create />
+            </MemoryRouter>
+        );
+    };
 
 describe(
-    'Ce',
+    "Ce",
     () => {
 
         beforeEach(() => {
 
-            vi.clearAllMocks()
+            vi.clearAllMocks();
 
-            localStorage.clear()
+            localStorage.clear();
 
-            // ↓ここが重要
             vi.mocked(
                 axios.isAxiosError
-            ).mockReturnValue(true)
-
-        })
+            ).mockReturnValue(
+                true
+            );
+        });
 
         test(
-            'Name入力欄表示',
+            "Name入力欄表示",
             () => {
 
-                renderCe()
+                renderCe();
 
                 expect(
                     screen.getByPlaceholderText(
-                        'Enter your name'
+                        "Enter your name"
                     )
-                ).toBeInTheDocument()
-
+                ).toBeInTheDocument();
             }
-        )
+        );
 
         test(
-            'Email入力欄表示',
+            "Email入力欄表示",
             () => {
 
-                renderCe()
+                renderCe();
 
                 expect(
                     screen.getByPlaceholderText(
-                        'Enter your email'
+                        "Enter your email"
                     )
-                ).toBeInTheDocument()
-
+                ).toBeInTheDocument();
             }
-        )   
+        );
 
         test(
-            'Password入力欄表示',
+            "Password入力欄表示",
             () => {
 
-                renderCe()
+                renderCe();
 
                 expect(
                     screen.getByPlaceholderText(
-                        'Create password'
+                        "Create password"
                     )
-                ).toBeInTheDocument()
-
+                ).toBeInTheDocument();
             }
-        )
+        );
 
         test(
-            '登録成功',
+            "登録成功",
             async () => {
 
                 vi.mocked(
                     axios.post
                 ).mockResolvedValueOnce(
                     {}
-                )
+                );
 
                 const user =
-                    userEvent.setup()
+                    userEvent.setup();
 
-                renderCe()
-
-                await user.type(
-                    screen.getByPlaceholderText(
-                        'Enter your name'
-                    ),
-                    'test'
-                )
+                renderCe();
 
                 await user.type(
                     screen.getByPlaceholderText(
-                        'Enter your email'
+                        "Enter your name"
                     ),
-                    'test@test.com'
-                )
+                    "test"
+                );
 
                 await user.type(
                     screen.getByPlaceholderText(
-                        'Create password'
+                        "Enter your email"
                     ),
-                    'password123'
-                )
+                    "test@test.com"
+                );
+
+                await user.type(
+                    screen.getByPlaceholderText(
+                        "Create password"
+                    ),
+                    "password123"
+                );
 
                 await user.click(
                     screen.getByRole(
-                        'button',
+                        "button",
                         {
-                            name: /create/i
+                            name:
+                                /create/i,
                         }
                     )
-                )
+                );
 
                 expect(
                     await screen.findByText(
-                        '登録成功！'
+                        "登録成功！"
                     )
-                ).toBeInTheDocument()
-
+                ).toBeInTheDocument();
             }
-        )
+        );
 
         test(
-            '422バリデーションエラー',
+            "422バリデーションエラー",
             async () => {
 
                 vi.mocked(
@@ -158,171 +207,171 @@ describe(
                 ).mockRejectedValueOnce({
                     response: {
                         status: 422,
+
                         data: {
                             errors: {
                                 email: [
-                                    'emailエラー'
-                                ]
-                            }
-                        }
-                    }
-                })
+                                    "emailエラー",
+                                ],
+                            },
+                        },
+                    },
+                });
 
                 const user =
-                    userEvent.setup()
+                    userEvent.setup();
 
-                renderCe()
-
-                await user.type(
-                    screen.getByPlaceholderText(
-                        'Enter your name'
-                    ),
-                    'test'
-                )
+                renderCe();
 
                 await user.type(
                     screen.getByPlaceholderText(
-                        'Enter your email'
+                        "Enter your name"
                     ),
-                    'test@test.com'
-                )
+                    "test"
+                );
 
                 await user.type(
                     screen.getByPlaceholderText(
-                        'Create password'
+                        "Enter your email"
                     ),
-                    'password123'
-                )
+                    "test@test.com"
+                );
+
+                await user.type(
+                    screen.getByPlaceholderText(
+                        "Create password"
+                    ),
+                    "password123"
+                );
 
                 await user.click(
                     screen.getByRole(
-                        'button',
+                        "button",
                         {
-                            name: /create/i
+                            name:
+                                /create/i,
                         }
                     )
-                )
+                );
 
                 expect(
                     await screen.findByText(
-                        'emailエラー'
+                        "emailエラー"
                     )
-                ).toBeInTheDocument()
-
+                ).toBeInTheDocument();
             }
-        )
+        );
 
         test(
-            '409メール重複',
+            "409メール重複",
             async () => {
 
                 vi.mocked(
                     axios.post
                 ).mockRejectedValueOnce({
                     response: {
-                        status: 409
-                    }
-                })
+                        status: 409,
+                    },
+                });
 
                 const user =
-                    userEvent.setup()
+                    userEvent.setup();
 
-                renderCe()
-
-                await user.type(
-                    screen.getByPlaceholderText(
-                        'Enter your name'
-                    ),
-                    'test'
-                )
+                renderCe();
 
                 await user.type(
                     screen.getByPlaceholderText(
-                        'Enter your email'
+                        "Enter your name"
                     ),
-                    'test@test.com'
-                )
+                    "test"
+                );
 
                 await user.type(
                     screen.getByPlaceholderText(
-                        'Create password'
+                        "Enter your email"
                     ),
-                    'password123'
-                )
+                    "test@test.com"
+                );
+
+                await user.type(
+                    screen.getByPlaceholderText(
+                        "Create password"
+                    ),
+                    "password123"
+                );
 
                 await user.click(
                     screen.getByRole(
-                        'button',
+                        "button",
                         {
-                            name: /create/i
+                            name:
+                                /create/i,
                         }
                     )
-                )
+                );
 
                 expect(
                     await screen.findByText(
-                        'このメールアドレスは既に使用されています'
+                        "このメールアドレスは既に使用されています"
                     )
-                ).toBeInTheDocument()
-
+                ).toBeInTheDocument();
             }
-        )
+        );
 
         test(
-            '登録失敗',
+            "登録失敗",
             async () => {
 
                 vi.mocked(
                     axios.post
                 ).mockRejectedValueOnce({
                     response: {
-                        status: 500
-                    }
-                })
+                        status: 500,
+                    },
+                });
 
                 const user =
-                    userEvent.setup()
+                    userEvent.setup();
 
-                renderCe()
-
-                await user.type(
-                    screen.getByPlaceholderText(
-                        'Enter your name'
-                    ),
-                    'test'
-                )
+                renderCe();
 
                 await user.type(
                     screen.getByPlaceholderText(
-                        'Enter your email'
+                        "Enter your name"
                     ),
-                    'test@test.com'
-                )
+                    "test"
+                );
 
                 await user.type(
                     screen.getByPlaceholderText(
-                        'Create password'
+                        "Enter your email"
                     ),
-                    'password123'
-                )
+                    "test@test.com"
+                );
+
+                await user.type(
+                    screen.getByPlaceholderText(
+                        "Create password"
+                    ),
+                    "password123"
+                );
 
                 await user.click(
                     screen.getByRole(
-                        'button',
+                        "button",
                         {
-                            name: /create/i
+                            name:
+                                /create/i,
                         }
                     )
-                )
+                );
 
                 expect(
                     await screen.findByText(
-                        '登録に失敗しました'
+                        "登録に失敗しました"
                     )
-                ).toBeInTheDocument()
-
+                ).toBeInTheDocument();
             }
-        )
-
+        );
     }
-)
+);
