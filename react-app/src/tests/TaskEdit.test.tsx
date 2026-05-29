@@ -579,7 +579,6 @@
 import {
     render,
     screen,
-    waitFor,
 } from "@testing-library/react";
 
 import {
@@ -592,13 +591,6 @@ import userEvent
     from "@testing-library/user-event";
 
 import { vi } from "vitest";
-
-import TaskEdit
-    from "../pages/TaskEdit";
-
-import * as taskService
-    from "../services/task";
-
 // navigateモック
 const mockNavigate =
     vi.fn();
@@ -620,17 +612,18 @@ vi.mock(
         };
     }
 );
+vi.mock("../services/task", () => ({
+    getMe: vi.fn(),
+    getTask: vi.fn(),
+    updateTask: vi.fn(),
+    deleteTask: vi.fn(),
+}));
 
-// service mock
-vi.mock(
-    "../services/task",
-    () => ({
-        getMe: vi.fn(),
-        getTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-    })
-);
+import TaskEdit
+    from "../pages/TaskEdit";
+
+import * as taskService
+    from "../services/task";
 
 const mockTask = {
     id: 1,
