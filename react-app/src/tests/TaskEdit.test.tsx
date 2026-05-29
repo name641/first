@@ -576,22 +576,7 @@
 //     }
 // )
 
-import {
-    render,
-    screen,
-} from "@testing-library/react";
-
-import {
-    MemoryRouter,
-    Routes,
-    Route,
-} from "react-router-dom";
-
-import userEvent
-    from "@testing-library/user-event";
-
 import { vi } from "vitest";
-
 
 // ======================
 // axios mock
@@ -621,7 +606,19 @@ vi.mock("axios", () => {
     };
 });
 
-// navigateモック
+// ======================
+// service mock
+// ======================
+vi.mock("../services/task", () => ({
+    getMe: vi.fn(),
+    getTask: vi.fn(),
+    updateTask: vi.fn(),
+    deleteTask: vi.fn(),
+}));
+
+// ======================
+// react-router mock
+// ======================
 const mockNavigate =
     vi.fn();
 
@@ -642,19 +639,29 @@ vi.mock(
         };
     }
 );
-vi.mock("../services/task", () => ({
-    getMe: vi.fn(),
-    getTask: vi.fn(),
-    updateTask: vi.fn(),
-    deleteTask: vi.fn(),
-}));
+
+// ======================
+// imports
+// ======================
+import {
+    render,
+    screen,
+} from "@testing-library/react";
+
+import {
+    MemoryRouter,
+    Routes,
+    Route,
+} from "react-router-dom";
+
+import userEvent
+    from "@testing-library/user-event";
 
 import TaskEdit
     from "../pages/TaskEdit";
 
 import * as taskService
     from "../services/task";
-
 const mockTask = {
     id: 1,
     title: "Laravel勉強",
