@@ -10,12 +10,6 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\TaskController;
 
-/*
-|--------------------------------------------------------------------------
-| Public routes
-|--------------------------------------------------------------------------
-*/
-
 // 👤 ユーザー作成
 Route::post('/users', [UserController::class, 'store']);
 
@@ -46,20 +40,7 @@ return response()->json([
 ]);
 });
 
-
-/*
-|--------------------------------------------------------------------------
-| Protected routes (Sanctum)
-|--------------------------------------------------------------------------
-*/
-
 Route::middleware('auth:sanctum')->group(function () {
-
-    /*
-    |-------------------------
-    | Tasks（ここが重要）
-    |-------------------------
-    */
 
     // 一覧（★フィルター対応済みControllerを使う）
     Route::get('/tasks', [TaskController::class, 'index']);
@@ -79,13 +60,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // 削除
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);
-
-
-    /*
-    |-------------------------
-    | Profile
-    |-------------------------
-    */
 
     // 自分の情報取得
     Route::get('/me', [ProfileController::class, 'me']);

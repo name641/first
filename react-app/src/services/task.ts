@@ -1,3 +1,4 @@
+//Api通信（axios）と外部処理
 import axios from "axios";
 
 const API_URL =
