@@ -7,9 +7,7 @@ use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
-    // ======================
     // 一覧取得
-    // ======================
     public function index(Request $request)
     {
         $query = Task::where(
@@ -79,18 +77,14 @@ class TaskController extends Controller
             ->orderBy('order')
             ->get();
     }
-    // ======================
+
     // create view
-    // （APIだけなら不要）
-    // ======================
     public function create()
     {
         return view('tasks.create');
     }
 
-    // ======================
     // 新規作成
-    // ======================
     public function store(Request $request)
     {
         // dd($request->all());
@@ -112,10 +106,7 @@ class TaskController extends Controller
         return response()->json($task, 201);
     }
 
-    // ======================
     // 編集画面
-    // （APIだけなら不要）
-    // ======================
     public function edit(Task $task)
     {
         if (auth()->user()->id !== $task->user_id) {
@@ -127,10 +118,8 @@ class TaskController extends Controller
         return view('tasks.edit', compact('task'));
     }
 
-    // ======================
-    // 更新
-    // ======================
 
+    // 更新
     public function update(Request $request, Task $task)
     {
         if (auth()->id() !== $task->user_id) {
@@ -156,9 +145,7 @@ class TaskController extends Controller
         return response()->json($task);
     }
 
-    // ======================
     // 削除
-    // ======================
     public function destroy(Task $task)
     {
         if (auth()->id() !== $task->user_id) {
